@@ -1,9 +1,10 @@
 import React from "react";
-import "../index.css";
+import "../../index.css";
 // @ts-ignore
-import logo from "../assets/images/logo.svg";
+import logo from "../../assets/images/logo.svg";
 // @ts-ignore
-import pvp from "../assets/images/player-vs-player.svg";
+import pvp from "../../assets/images/player-vs-player.svg";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
 export const DesktopMainMenu = () => {
@@ -33,12 +34,14 @@ export const DesktopMainMenu = () => {
               </button>
             </div>
             <div className="flex items-center mt-[1.25rem]">
-              <button
-                className="w-[25rem] h-[4.5rem] flex justify-between items-center rounded-[20px]
+              <Link to={"/rules"}>
+                <button
+                  className="w-[25rem] h-[4.5rem] flex justify-between items-center rounded-[20px]
                 bg-[#FFF] border-[3px] border-black shadow-mainCard px-[1.25rem] py-[0.625rem] text-white text-[1.25rem] transition ease-in-out hover:-translate-y-1 hover:scale-110 duration-300"
-              >
-                <h3 className="text-black font-main font-bold">GAME RULES</h3>
-              </button>
+                >
+                  <h3 className="text-black font-main font-bold">GAME RULES</h3>
+                </button>
+              </Link>
             </div>
           </div>
         </div>
