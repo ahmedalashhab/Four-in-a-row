@@ -5,7 +5,6 @@ import logo from "../../assets/images/logo.svg";
 // @ts-ignore
 import pvp from "../../assets/images/player-vs-player.svg";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 
 export const DesktopMainMenu = () => {
   return (
