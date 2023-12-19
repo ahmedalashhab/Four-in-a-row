@@ -22,7 +22,7 @@ export const Turn = () => {
   // }, [time]);
 
   return (
-    <div className="absolute font-bold bottom-0 translate-y-3/4 z-10">
+    <div className="absolute font-bold bottom-0 translate-y-3/4 z-30">
       <div className="relative">
         <img
           alt="turn indicator"
