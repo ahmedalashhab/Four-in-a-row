@@ -12,9 +12,9 @@ interface PlayerProps {
 export const Player = ({ pNumber, score }: PlayerProps) => {
   return (
     <div
-      className={` ${
+      className={`${
         pNumber === 1 ? "mr-12" : "ml-12"
-      } h-[10rem] w-[8.8rem] bg-white border-2 border-black shadow-mainCard rounded-2xl flex justify-center relative font-main font-bold"`}
+      } h-[10rem] w-[8.8rem] bg-white border-2 border-black shadow-mainCard rounded-[20px] flex justify-center relative font-main font-bold"`}
     >
       <img
         src={pNumber === 1 ? player1 : player2}

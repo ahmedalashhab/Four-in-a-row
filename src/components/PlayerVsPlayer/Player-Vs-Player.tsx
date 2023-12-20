@@ -1,13 +1,60 @@
-import React from "react";
+import React, { useState } from "react";
 import { Nav } from "../Shared/Nav";
 import { GameBoard } from "../Shared/GameBoard";
 
 export const PlayerVsPlayer = () => {
+  const [player1Score, setPlayer1Score] = useState<number>(0);
+  const [player2Score, setPlayer2Score] = useState<number>(0);
+  const [winner, setWinner] = useState<string>("");
+  const [playerTurn, setPlayerTurn] = useState<string>("PLAYER 1");
+  const [time, setTime] = useState<number>(30);
+  const [gameBoard, setGameBoard] = useState<(string | null)[][]>(
+    Array(6).fill(Array(7).fill(null)),
+  );
+
+  const playAgain = (): void => {
+    setGameBoard(Array(6).fill(Array(7).fill(null)));
+    setPlayerTurn("PLAYER 1");
+    setTime(30);
+    setWinner("");
+  };
+
+  const restartGame = (): void => {
+    setGameBoard(Array(6).fill(Array(7).fill(null)));
+    setPlayerTurn("PLAYER 1");
+    setTime(30);
+    setWinner("");
+    setPlayer1Score(0);
+    setPlayer2Score(0);
+  };
+
   return (
     <div className="w-screen h-screen bg-[#7945FF] justify-center items-center flex relative">
-      <Nav />
-      <GameBoard />
-      <div className="absolute w-screen h-[16rem] bg-[#5C2DD5] left-0 bottom-0 rounded-t-[60px]"></div>
+      <Nav restartGame={restartGame} />
+      <GameBoard
+        winner={winner}
+        setWinner={setWinner}
+        setGameBoard={setGameBoard}
+        gameBoard={gameBoard}
+        player2Score={player2Score}
+        setPlayer2Score={setPlayer2Score}
+        player1Score={player1Score}
+        setPlayer1Score={setPlayer1Score}
+        time={time}
+        setTime={setTime}
+        playerTurn={playerTurn}
+        setPlayerTurn={setPlayerTurn}
+        resetGame={playAgain}
+      />
+      <div
+        className={`absolute w-screen h-[16rem] ${
+          winner === "PLAYER 1"
+            ? "bg-[#FD6687]"
+            : winner === "PLAYER 2"
+              ? "bg-[#FFCE67]"
+              : "bg-[#5C2DD5]"
+        } left-0 bottom-0 rounded-t-[60px]`}
+      ></div>
     </div>
   );
 };
