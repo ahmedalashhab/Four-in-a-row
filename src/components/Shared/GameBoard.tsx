@@ -165,7 +165,7 @@ export const GameBoard = ({
                 <img
                   src={playerTurn === "PLAYER 1" ? marker_red : marker_yellow}
                   alt="marker"
-                  className={`w-[3.5rem] h-auto z-50 absolute top-0 translate-y-[-4.5rem] mr-3`}
+                  className={`w-[3.5rem] h-auto select-none z-50 absolute top-0 translate-y-[-4.5rem] mr-3`}
                 />
               )}
               {gameBoard.map((row: any, i) => (
@@ -174,7 +174,7 @@ export const GameBoard = ({
                     <motion.img
                       src={counter_red}
                       alt="counter"
-                      className="w-[4.5rem] absolute h-auto z-[-1]"
+                      className="w-[4.5rem] select-none absolute h-auto z-[-1]"
                       initial={{ y: -700 }}
                       animate={{ y: 0 }}
                       onAnimationStart={() => {
@@ -200,7 +200,7 @@ export const GameBoard = ({
                       onAnimationComplete={() => {
                         setCounterZIndex(50);
                       }}
-                      className="w-[4.5rem] absolute h-auto z-[-1]"
+                      className="w-[4.5rem] select-none absolute h-auto z-[-1]"
                       initial={{ y: -700 }}
                       animate={{ y: 0 }}
                       transition={{
@@ -226,13 +226,13 @@ export const GameBoard = ({
       <div className="justify-center items-center flex relative">
         <img
           src={board_white}
-          className={`relative z-${counterZIndex}`}
+          className={`relative z-${counterZIndex} select-none`}
           alt="white board"
         />
         {renderGameBoard()}
         <img
           src={board_black}
-          className="absolute translate-y-1 z-[-1] top-50 left-50"
+          className="absolute translate-y-1 z-[-1] top-50 left-50 select-none"
           alt="board shadow"
         />
         <Turn
