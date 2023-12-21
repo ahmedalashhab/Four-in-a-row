@@ -6,13 +6,15 @@ import player2 from "../../assets/images/player-two.svg";
 
 interface TurnProps {
   time: number;
-  setTime: (arg0: number) => void;
+  setTime: (arg0: any) => void;
   playerTurn: string;
   setPlayerTurn: (arg0: string) => void;
   player1Score: number;
   player2Score: number;
   winner: string;
   resetGame: () => void;
+  open: boolean;
+  setOpen: (arg0: boolean) => void;
 }
 
 export const Turn = ({
@@ -24,6 +26,8 @@ export const Turn = ({
   player2Score,
   winner,
   resetGame,
+  open,
+  setOpen,
 }: TurnProps) => {
   const handleClick = () => {
     setPlayerTurn(playerTurn === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1");
@@ -32,20 +36,20 @@ export const Turn = ({
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setTime(time - 1);
+      !open && setTime(time - 1);
       if (time === 0) {
         handleClick();
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [time]);
+  }, [time, open]);
 
   useEffect(() => {
     setTime(30);
   }, [playerTurn]);
 
   return (
-    <div className="absolute font-bold bottom-0 translate-y-3/4 z-50">
+    <div className="absolute font-bold bottom-0 translate-y-3/4 z-50 select-none">
       {winner ? (
         <div className="relative">
           <div
@@ -58,7 +62,7 @@ export const Turn = ({
               </div>
               <button
                 className="flex justify-center text-[16px] items-center bg-[#5C2DD5] px-6 py-2 rounded-[20px]
-              text-white hover:brightness-125 transition-all ease-in-out"
+              text-white hover:brightness-125 transition-all ease-in-out hover:-translate-y-1 hover:scale-110 duration-300"
                 onClick={resetGame}
               >
                 PLAY AGAIN

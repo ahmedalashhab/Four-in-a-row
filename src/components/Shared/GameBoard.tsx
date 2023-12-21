@@ -23,6 +23,8 @@ interface GameBoardProps {
   player2Score: number;
   setPlayer2Score: (arg0: any) => void;
   resetGame: () => void;
+  open: boolean;
+  setOpen: (arg0: boolean) => void;
 }
 
 export const GameBoard = ({
@@ -39,6 +41,8 @@ export const GameBoard = ({
   player2Score,
   setPlayer2Score,
   resetGame,
+  open,
+  setOpen,
 }: GameBoardProps) => {
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
   const [counterZIndex, setCounterZIndex] = useState<number>(10);
@@ -85,7 +89,6 @@ export const GameBoard = ({
     console.log(columnIndex); // Log the selected column index
     // Create a deep copy of the gameBoard array
     let newGameBoard = gameBoard.map((row) => [...row]);
-    console.log("Initial gameBoard:", newGameBoard); // Log the initial gameBoard
 
     // Initialize a variable to store the row index of the empty cell
     let emptyCellRowIndex = null;
@@ -96,22 +99,11 @@ export const GameBoard = ({
       if (newGameBoard[i][columnIndex] === null) {
         // If an empty cell is found, store its row index in the variable
         emptyCellRowIndex = i;
-        console.log("Found empty cell at row:", i); // Log the row index of the empty cell
         // Break the loop
         break;
       }
     }
 
-    const bounceTransition = {
-      y: {
-        duration: 0.4,
-        yoyo: Infinity,
-        ease: "easeOut",
-        bounce: 0.5,
-        from: -10,
-      },
-    };
-    console.log(newGameBoard);
     // In the dropCounter function
     if (emptyCellRowIndex !== null) {
       // Update the newGameBoard to place the current player's turn in the empty cell
@@ -129,8 +121,6 @@ export const GameBoard = ({
           setPlayer2Score((prevPlayer2Score: number) => prevPlayer2Score + 1);
         }
         setWinner(playerTurn);
-        console.log(playerTurn + " wins!");
-        console.log("winner is" + ` ${winner}`);
         // End the game and display the winner
 
         return;
@@ -165,7 +155,7 @@ export const GameBoard = ({
                 <img
                   src={playerTurn === "PLAYER 1" ? marker_red : marker_yellow}
                   alt="marker"
-                  className={`w-[3.5rem] h-auto select-none z-50 absolute top-0 translate-y-[-4.5rem] mr-3`}
+                  className={`w-[3.5rem] h-auto select-none z-50 absolute top-0 translate-y-[-4.5rem] mr-4`}
                 />
               )}
               {gameBoard.map((row: any, i) => (
@@ -221,7 +211,13 @@ export const GameBoard = ({
   };
 
   return (
-    <div className="flex items-center z-20">
+    <motion.div
+      // slide the page in from the right
+      initial={{ x: "100vw" }}
+      animate={{ x: 0 }}
+      transition={{ type: "spring", stiffness: 100 }}
+      className="flex items-center z-20"
+    >
       <Player pNumber={1} score={player1Score} />
       <div className="justify-center items-center flex relative">
         <img
@@ -244,9 +240,11 @@ export const GameBoard = ({
           player2Score={player2Score}
           winner={winner}
           resetGame={resetGame}
+          open={open}
+          setOpen={setOpen}
         />
       </div>
       <Player pNumber={2} score={player2Score} />
-    </div>
+    </motion.div>
   );
 };

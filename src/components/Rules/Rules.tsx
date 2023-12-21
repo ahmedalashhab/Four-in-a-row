@@ -1,12 +1,20 @@
 import React from "react";
-// @ts-ignore
 import iconCheck from "../../assets/images/icon-check.svg";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 export const Rules = () => {
   return (
     <div className="w-screen h-screen bg-[#7945FF] justify-center items-center flex">
-      <div
+      <motion.div
+        initial={{ y: -700 }}
+        animate={{ y: 0 }}
+        transition={{
+          type: "spring",
+          stiffness: 300,
+          damping: 30,
+          mass: 1,
+        }}
         className="h-[34rem] w-[30rem] p-[2rem] bg-white rounded-[40px] shadow-mainCard border-[3px] border-black
        relative flex flex-col justify-center font-main gap-[2rem]"
       >
@@ -55,7 +63,7 @@ export const Rules = () => {
             />
           </Link>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

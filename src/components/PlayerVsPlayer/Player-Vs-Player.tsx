@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Nav } from "../Shared/Nav";
 import { GameBoard } from "../Shared/GameBoard";
+import { motion } from "framer-motion";
+import Pause from "../Shared/Pause";
 
 export const PlayerVsPlayer = () => {
   const [player1Score, setPlayer1Score] = useState<number>(0);
@@ -11,6 +13,7 @@ export const PlayerVsPlayer = () => {
   const [gameBoard, setGameBoard] = useState<(string | null)[][]>(
     Array(6).fill(Array(7).fill(null)),
   );
+  const [open, setOpen] = useState<boolean>(false);
 
   const playAgain = (): void => {
     setGameBoard(Array(6).fill(Array(7).fill(null)));
@@ -30,7 +33,7 @@ export const PlayerVsPlayer = () => {
 
   return (
     <div className="w-screen h-screen bg-[#7945FF] justify-center items-center flex relative">
-      <Nav restartGame={restartGame} />
+      <Nav restartGame={restartGame} open={open} setOpen={setOpen} />
       <GameBoard
         winner={winner}
         setWinner={setWinner}
@@ -45,7 +48,10 @@ export const PlayerVsPlayer = () => {
         playerTurn={playerTurn}
         setPlayerTurn={setPlayerTurn}
         resetGame={playAgain}
+        open={open}
+        setOpen={setOpen}
       />
+      <Pause open={open} setOpen={setOpen} restartGame={restartGame} />
       <div
         className={`absolute w-screen h-[16rem] ${
           winner === "PLAYER 1"
