@@ -133,6 +133,21 @@ export const GameBoard = ({
     }
   };
 
+  // listen for keydown events and open modal if escape is pressed
+  useEffect(() => {
+    const handleKeyDown = (e: any) => {
+      if (e.key === "Escape") {
+        setOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   const gameBoardWhiteHover = (j: number | null): void => {
     setHoveredColumn(j);
   };
