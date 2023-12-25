@@ -77,7 +77,7 @@ export const Turn = ({
             src={playerTurn === "PLAYER 1" ? turn_red : turn_yellow}
             className="lg:w-[13rem] w-[12rem] h-auto mt-8 lg:mt-0"
           />
-          <div className="absolute text-white w-full px-[1.5rem] flex flex-col justify-center items-center top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <div className="absolute mt-2 text-white w-full px-[1.5rem] flex flex-col justify-center items-center top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <span className="font-bold text-[16px] mb-[-0.5rem]">
               {playerTurn}'S TURN
             </span>
