@@ -7,7 +7,7 @@ import { PlayerVsPlayer } from "./components/PlayerVsPlayer/Player-Vs-Player";
 
 function App() {
   return (
-    <div>
+    <div className="h-screen">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/rules" element={<Rules />} />
