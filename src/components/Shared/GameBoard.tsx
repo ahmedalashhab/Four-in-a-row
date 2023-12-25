@@ -155,31 +155,35 @@ export const GameBoard = ({
   const renderGameBoard = (): React.ReactElement => {
     return (
       <>
-        <div className="flex ml-5 z-50 absolute">
+        <div className="flex lg:ml-5 lg:pl-0 z-50 absolute px-4">
           {gameBoard[0].map((cell, j) => (
             <div
               key={j}
-              className="flex flex-col items-center relative mb-8"
+              className="flex flex-col items-center relative lg:mb-8 mb-4"
               onMouseEnter={() => !winner && gameBoardWhiteHover(j)}
               onMouseLeave={() => !winner && gameBoardWhiteHover(null)}
               onClick={() => {
                 !winner && dropCounter(j);
               }}
             >
-              {hoveredColumn === j && (
+              {hoveredColumn === j && !isPhone && (
                 <img
                   src={playerTurn === "PLAYER 1" ? marker_red : marker_yellow}
                   alt="marker"
-                  className={`w-[3.5rem] h-auto select-none z-50 absolute top-0 translate-y-[-4.5rem] mr-4`}
+                  className={`lg:w-[3.5rem] w-[2rem] lg:h-auto select-none z-50 absolute top-0 lg:translate-y-[-4.5rem] 
+                  translate-y-[-3rem] lg:mr-1`}
                 />
               )}
               {gameBoard.map((row: any, i) => (
-                <div key={i} className="w-[5.5rem] h-[5.5rem]">
+                <div
+                  key={i}
+                  className="lg:w-[5.5rem] lg:h-[5.5rem] w-[3.1rem] h-[3.1rem] pl-[5px]"
+                >
                   {row[j] === "PLAYER 1" ? (
                     <motion.img
                       src={counter_red}
                       alt="counter"
-                      className="w-[4.5rem] select-none absolute h-auto z-[-1]"
+                      className="lg:w-[4.5rem] w-[2.5rem] select-none absolute h-auto z-[-1]"
                       initial={{ y: -700 }}
                       animate={{ y: 0 }}
                       onAnimationStart={() => {
@@ -205,7 +209,7 @@ export const GameBoard = ({
                       onAnimationComplete={() => {
                         setCounterZIndex(50);
                       }}
-                      className="w-[4.5rem] select-none absolute h-auto z-[-1]"
+                      className="lg:w-[4.5rem] w-[2.5rem] select-none absolute h-auto z-[-1]"
                       initial={{ y: -700 }}
                       animate={{ y: 0 }}
                       transition={{
@@ -225,25 +229,31 @@ export const GameBoard = ({
     );
   };
 
+  const isPhone = window.innerWidth < 821;
+
   return (
     <motion.div
       // slide the page in from the right
       initial={{ x: "100vw" }}
       animate={{ x: 0 }}
       transition={{ type: "spring", stiffness: 100 }}
-      className="flex items-center z-20"
+      className="flex lg:flex-row flex-col items-center z-20"
     >
-      <Player pNumber={1} score={player1Score} />
+      <div className="flex justify-between mb-[3.125rem] lg:mb-0 w-screen lg:w-auto px-5">
+        <div>{isPhone && <Player pNumber={1} score={player1Score} />}</div>
+        <div>{isPhone && <Player pNumber={2} score={player2Score} />}</div>
+      </div>
+      {!isPhone && <Player pNumber={1} score={player1Score} />}
       <div className="justify-center items-center flex relative">
         <img
           src={board_white}
-          className={`relative z-${counterZIndex} select-none`}
+          className={`relative z-${counterZIndex} select-none px-4`}
           alt="white board"
         />
         {renderGameBoard()}
         <img
           src={board_black}
-          className="absolute translate-y-1 z-[-1] top-50 left-50 select-none"
+          className="absolute translate-y-1 z-[-1] top-50 left-50 select-none px-4"
           alt="board shadow"
         />
         <Turn
@@ -259,7 +269,7 @@ export const GameBoard = ({
           setOpen={setOpen}
         />
       </div>
-      <Player pNumber={2} score={player2Score} />
+      {!isPhone && <Player pNumber={2} score={player2Score} />}
     </motion.div>
   );
 };

@@ -51,9 +51,9 @@ export const Turn = ({
   return (
     <div className="absolute font-bold bottom-0 translate-y-3/4 z-50 select-none">
       {winner ? (
-        <div className="relative">
+        <div className="relative mt-8 lg:mt-0">
           <div
-            className={`h-[10rem] w-[18rem] bg-white border-2 border-black shadow-mainCard rounded-[20px] flex justify-center relative font-main font-bold"`}
+            className={`lg:h-[10rem] lg:w-[18rem] w-[17.8rem] h-[10rem] bg-white border-2 border-black shadow-mainCard rounded-[20px] flex justify-center relative font-main font-bold"`}
           >
             <div className="flex flex-col justify-center items-center font-bold">
               <span className="text-[16px]">{winner}</span>
@@ -75,7 +75,7 @@ export const Turn = ({
           <img
             alt="turn indicator"
             src={playerTurn === "PLAYER 1" ? turn_red : turn_yellow}
-            className="w-[13rem] h-auto"
+            className="lg:w-[13rem] w-[12rem] h-auto mt-8 lg:mt-0"
           />
           <div className="absolute text-white w-full px-[1.5rem] flex flex-col justify-center items-center top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <span className="font-bold text-[16px] mb-[-0.5rem]">

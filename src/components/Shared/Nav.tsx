@@ -13,7 +13,7 @@ interface NavProps {
 export const Nav = ({ restartGame, setOpen, open }: NavProps) => {
   return (
     <div className="flex items-center justify-center absolute top-0 font-main text-white text-[16px] select-none">
-      <div className="w-[39rem] flex justify-between items-center mt-10">
+      <div className="lg:w-[39rem] w-screen px-[1.25rem] lg:px-0 flex justify-between items-center lg:mt-10 mt-[3.2rem]">
         <button
           onClick={() => setOpen(!open)}
           className="bg-[#5C2DD5] flex justify-center items-center rounded-2xl h-[2rem] py-[0.25rem] px-[1rem] hover:brightness-110 transition-all ease-in-out"

@@ -18,7 +18,7 @@ export const DesktopMainMenu = () => {
           mass: 1,
           bounce: 0.25,
         }}
-        className="h-[27rem] w-[30rem] rounded-[2.5rem] bg-[#7945FF] border-[3px] border-black shadow-mainCard px-[2.5rem] py-[3.75rem]"
+        className="lg:h-[27rem] lg:w-[30rem] flex items-center justify-center h-screen w-screen lg:rounded-[2.5rem] bg-[#7945FF] lg:border-[3px] lg:border-black lg:shadow-mainCard lg:px-[2.5rem] lg:py-[3.75rem]"
       >
         <div className="flex flex-col justify-center items-center">
           <div className="grid-cols-2">
@@ -33,7 +33,7 @@ export const DesktopMainMenu = () => {
             <div className="flex flex-row items-center">
               <Link to={"/player-vs-player"}>
                 <button
-                  className="w-[25rem] h-[4.5rem] bg-[#FFCE67] flex justify-between items-center rounded-[20px]
+                  className="lg:w-[25rem] w-[21rem] lg:h-[4.5rem]  bg-[#FFCE67] flex justify-between items-center rounded-[20px]
               border-[3px] border-black shadow-mainCard px-[1.25rem] py-[0.625rem] text-white text-[1.25rem]
               transition ease-in-out hover:-translate-y-1 hover:scale-110 duration-300"
                 >
@@ -47,7 +47,7 @@ export const DesktopMainMenu = () => {
             <div className="flex items-center mt-[1.25rem]">
               <Link to={"/rules"}>
                 <button
-                  className="w-[25rem] h-[4.5rem] flex justify-between items-center rounded-[20px]
+                  className="lg:w-[25rem] w-[21rem] lg:h-[4.5rem] flex justify-between items-center rounded-[20px]
                 bg-[#FFF] border-[3px] border-black shadow-mainCard px-[1.25rem] py-[0.625rem] text-white text-[1.25rem] transition ease-in-out hover:-translate-y-1 hover:scale-110 duration-300"
                 >
                   <h3 className="text-black font-main font-bold select-none">

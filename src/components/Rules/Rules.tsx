@@ -15,7 +15,7 @@ export const Rules = () => {
           damping: 30,
           mass: 1,
         }}
-        className="h-[34rem] w-[30rem] p-[2rem] bg-white rounded-[40px] shadow-mainCard border-[3px] border-black
+        className="h-[34rem] lg:w-[30rem] w-[25rem] mx-[1.25rem] lg:mx-0 p-4 lg:p-[2rem] bg-white rounded-[40px] shadow-mainCard border-[3px] border-black
        relative flex flex-col justify-center font-main gap-[2rem]"
       >
         <div className="flex justify-center">
