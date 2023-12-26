@@ -43,7 +43,7 @@ export const PlayerVsPlayer = () => {
   }, []);
 
   return (
-    <div className="w-screen h-screen flex-1 bg-[#7945FF] justify-center lg:items-center pt-24 lg:pt-0 flex relative">
+    <div className="w-screen h-[100svh] flex-1 bg-[#7945FF] justify-center lg:items-center pt-24 lg:pt-0 flex relative">
       <Nav restartGame={restartGame} open={open} setOpen={setOpen} />
       <GameBoard
         winner={winner}

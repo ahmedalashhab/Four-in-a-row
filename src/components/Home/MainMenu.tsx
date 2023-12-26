@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 
 export const DesktopMainMenu = () => {
   return (
-    <div className="w-screen h-screen bg-[#5C2DD5] justify-center items-center flex flex-1 overflow-hidden">
+    <div className="w-screen h-[100svh] bg-[#5C2DD5] justify-center items-center flex flex-1 overflow-hidden">
       <motion.div
         initial={{ y: -700 }}
         animate={{ y: 0 }}
@@ -18,7 +18,7 @@ export const DesktopMainMenu = () => {
           mass: 1,
           bounce: 0.25,
         }}
-        className="lg:h-[27rem] lg:w-[30rem] flex items-center justify-center h-screen w-screen lg:rounded-[2.5rem] bg-[#7945FF] lg:border-[3px] lg:border-black lg:shadow-mainCard lg:px-[2.5rem] lg:py-[3.75rem]"
+        className="lg:h-[27rem] lg:w-[30rem] flex items-center justify-center h-[100svh] w-screen lg:rounded-[2.5rem] bg-[#7945FF] lg:border-[3px] lg:border-black lg:shadow-mainCard lg:px-[2.5rem] lg:py-[3.75rem]"
       >
         <div className="flex flex-col justify-center items-center">
           <div className="grid-cols-2">

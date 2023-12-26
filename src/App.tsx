@@ -17,7 +17,7 @@ function App() {
   }, []);
 
   return (
-    <div className="max-h-screen min-h-fit m-0 p-0 w-screen h-screen flex justify-center items-center flex-1">
+    <div className="max-h-screen min-h-fit m-0 p-0 w-screen h-[100svh] flex justify-center items-center flex-1">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/rules" element={<Rules />} />
