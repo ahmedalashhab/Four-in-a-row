@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 
 export const DesktopMainMenu = () => {
   return (
-    <div className="w-screen h-screen bg-[#5C2DD5] justify-center items-center flex flex-1">
+    <div className="w-screen h-screen bg-[#5C2DD5] justify-center items-center flex flex-1 overflow-hidden">
       <motion.div
         initial={{ y: -700 }}
         animate={{ y: 0 }}
