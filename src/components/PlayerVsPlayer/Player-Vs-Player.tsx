@@ -32,7 +32,7 @@ export const PlayerVsPlayer = () => {
   };
 
   return (
-    <div className="w-screen h-screen flex-1 bg-[#7945FF] justify-center lg:items-center pt-32 lg:pt-0 flex relative">
+    <div className="w-screen h-screen flex-1 bg-[#7945FF] justify-center lg:items-center pt-24 lg:pt-0 flex relative">
       <Nav restartGame={restartGame} open={open} setOpen={setOpen} />
       <GameBoard
         winner={winner}
@@ -53,7 +53,7 @@ export const PlayerVsPlayer = () => {
       />
       <Pause open={open} setOpen={setOpen} restartGame={restartGame} />
       <div
-        className={`absolute w-screen lg:h-[16rem] h-[13rem] ${
+        className={`absolute w-screen lg:h-[16rem] max-h-[20rem] min-h-[13rem] ${
           winner === "PLAYER 1"
             ? "bg-[#FD6687]"
             : winner === "PLAYER 2"
