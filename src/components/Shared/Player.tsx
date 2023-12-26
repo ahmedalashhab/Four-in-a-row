@@ -16,7 +16,7 @@ export const Player = ({ pNumber, score }: PlayerProps) => {
     <div
       className={`${
         pNumber === 1 ? "lg:mr-12 lg:ml-0 ml-4" : "lg:ml-12 lg:mr-0 mr-4"
-      } lg:h-[10rem] lg:w-[8.8rem] w-[8.9rem] h-[5rem] select-none bg-white border-2 border-black shadow-mainCard rounded-[20px] flex justify-center relative font-main font-bold"`}
+      } lg:h-[10rem] lg:scale-100 scale-90 lg:w-[8.8rem] w-[8.9rem] h-[5rem] select-none bg-white border-2 border-black shadow-mainCard rounded-[20px] flex justify-center relative font-main font-bold"`}
     >
       <img
         src={pNumber === 1 ? player1 : player2}

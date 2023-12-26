@@ -49,7 +49,7 @@ export const Turn = ({
   }, [playerTurn]);
 
   return (
-    <div className="absolute font-bold bottom-0 translate-y-3/4 z-50 select-none">
+    <div className="absolute font-bold bottom-0 translate-y-32 z-50 select-none scale-75 lg:scale-100">
       {winner ? (
         <div className="relative mt-8 lg:mt-0">
           <div
