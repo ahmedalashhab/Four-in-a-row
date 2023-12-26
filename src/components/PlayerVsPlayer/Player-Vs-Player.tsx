@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Nav } from "../Shared/Nav";
 import { GameBoard } from "../Shared/GameBoard";
-import { motion } from "framer-motion";
 import Pause from "../Shared/Pause";
 
 export const PlayerVsPlayer = () => {

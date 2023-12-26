@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Player } from "./Player";
 import board_white from "../../assets/images/board-layer-white-large.svg";
 import board_black from "../../assets/images/board-layer-black-large.svg";
@@ -155,11 +155,11 @@ export const GameBoard = ({
   const renderGameBoard = (): React.ReactElement => {
     return (
       <>
-        <div className="flex lg:ml-5 lg:pl-0 z-50 absolute px-4">
+        <div className="flex lg:ml-2 lg:mt-2 lg:pl-0 z-50 absolute">
           {gameBoard[0].map((cell, j) => (
             <div
               key={j}
-              className="flex flex-col items-center relative lg:mb-8 mb-4"
+              className="flex flex-col items-center relative lg:mb-8 mb-4 cursor-pointer"
               onMouseEnter={() => !winner && gameBoardWhiteHover(j)}
               onMouseLeave={() => !winner && gameBoardWhiteHover(null)}
               onClick={() => {
@@ -177,13 +177,14 @@ export const GameBoard = ({
               {gameBoard.map((row: any, i) => (
                 <div
                   key={i}
-                  className="lg:w-[5.5rem] lg:h-[5.5rem] w-[3.1rem] h-[3.1rem] pl-[5px]"
+                  className="lg:w-[4.6rem] lg:h-[4.6rem] select-none sm:w-[5.25rem] sm:h-[5.25rem] md:w-[5.8rem]
+                  md:h-[5.8rem] w-[3.1rem] h-[3.1rem] pl-[4px] lg:pl-0"
                 >
                   {row[j] === "PLAYER 1" ? (
                     <motion.img
                       src={counter_red}
                       alt="counter"
-                      className="lg:w-[4.5rem] w-[2.5rem] select-none absolute h-auto z-[-1]"
+                      className="lg:w-[4rem] sm:w-[4.6rem] md:w-[4.8rem] w-[2.5rem] select-none absolute h-auto z-[-1]"
                       initial={{ y: -700 }}
                       animate={{ y: 0 }}
                       onAnimationStart={() => {
@@ -209,7 +210,7 @@ export const GameBoard = ({
                       onAnimationComplete={() => {
                         setCounterZIndex(50);
                       }}
-                      className="lg:w-[4.5rem] w-[2.5rem] select-none absolute h-auto z-[-1]"
+                      className="lg:w-[4rem] sm:w-[4.6rem] md:w-[4.8rem] w-[2.5rem] select-none absolute h-auto z-[-1]"
                       initial={{ y: -700 }}
                       animate={{ y: 0 }}
                       transition={{
@@ -247,13 +248,13 @@ export const GameBoard = ({
       <div className="justify-center items-center flex relative">
         <img
           src={board_white}
-          className={`relative z-${counterZIndex} select-none px-4`}
+          className={`relative z-${counterZIndex} select-none px-4 w-[24.2rem] sm:w-[40rem] md:w-[43.5rem] md:mt-3 lg:w-[35rem] h-auto`}
           alt="white board"
         />
         {renderGameBoard()}
         <img
           src={board_black}
-          className="absolute translate-y-1 z-[-1] top-50 left-50 select-none px-4"
+          className="absolute translate-y-1 z-[-1] top-50 left-50 select-none px-4 w-[24.2rem] sm:w-[40rem] md:w-[43.5rem] md:mt-3 lg:w-[35rem] h-auto"
           alt="board shadow"
         />
         <Turn
