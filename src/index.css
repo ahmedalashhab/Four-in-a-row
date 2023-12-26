@@ -4,10 +4,12 @@
 
 html {
   height: -webkit-fill-available;
+  height: 100svh;
 }
 
 body {
     height: -webkit-fill-available;
+    height: 100svh;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
