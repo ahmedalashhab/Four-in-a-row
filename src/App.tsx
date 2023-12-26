@@ -6,8 +6,14 @@ import { Rules } from "./components/Rules/Rules";
 import { PlayerVsPlayer } from "./components/PlayerVsPlayer/Player-Vs-Player";
 
 function App() {
-  React.useEffect(() => {
+  const updateHeight = () => {
     document.documentElement.style.height = `${window.innerHeight}px`;
+  };
+
+  React.useEffect(() => {
+    updateHeight();
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
   }, []);
 
   return (
