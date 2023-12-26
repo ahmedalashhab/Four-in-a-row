@@ -64,7 +64,7 @@ export const PlayerVsPlayer = () => {
       />
       <Pause open={open} setOpen={setOpen} restartGame={restartGame} />
       <div
-        className={`absolute w-screen lg:h-[16rem] h-[13rem] ${
+        className={`absolute w-screen lg:h-[16rem] h-[10rem] ${
           winner === "PLAYER 1"
             ? "bg-[#FD6687]"
             : winner === "PLAYER 2"
