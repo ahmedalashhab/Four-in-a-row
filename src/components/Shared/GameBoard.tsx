@@ -237,7 +237,7 @@ export const GameBoard = ({
       initial={{ x: "100vw" }}
       animate={{ x: 0 }}
       transition={{ type: "spring", stiffness: 100 }}
-      className="flex lg:flex-row flex-col items-center z-20"
+      className="flex lg:flex-row flex-col items-center z-20 lg:pr-12"
     >
       <div className="flex justify-between mb-[3.125rem] lg:mb-0 w-screen lg:w-auto px-5">
         <div>{isPhone && <Player pNumber={1} score={player1Score} />}</div>
