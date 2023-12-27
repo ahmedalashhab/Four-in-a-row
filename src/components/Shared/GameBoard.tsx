@@ -337,7 +337,7 @@ export const GameBoard = ({
   const randomWaitTime = Math.floor(Math.random() * 5) + 1;
 
   useEffect(() => {
-    if (cpuMode && playerTurn === "PLAYER 2") {
+    if (cpuMode && playerTurn === "PLAYER 2" && !winner) {
       let bestMove = getBestMove(gameBoard, 4);
       // wait 1 second before dropping the counter, but don't interfere with the turn timer
       setTimeout(() => {
