@@ -218,7 +218,13 @@ export const GameBoard = ({
               onMouseEnter={() => !winner && gameBoardWhiteHover(j)}
               onMouseLeave={() => !winner && gameBoardWhiteHover(null)}
               onClick={() => {
-                !winner && dropCounter(j);
+                if (
+                  !winner &&
+                  playerTurn === "PLAYER 1" &&
+                  (cpuMode || playerTurn === "PLAYER 1")
+                ) {
+                  dropCounter(j);
+                }
               }}
             >
               {hoveredColumn === j && !isPhone && (
