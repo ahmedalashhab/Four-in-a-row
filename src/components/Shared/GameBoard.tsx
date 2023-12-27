@@ -8,6 +8,8 @@ import marker_yellow from "../../assets/images/marker-yellow.svg";
 import counter_red from "../../assets/images/counter-red-large.svg";
 import counter_yellow from "../../assets/images/counter-yellow-large.svg";
 import { motion } from "framer-motion";
+import { evaluate } from "../PlayerVsCPU/Evaluate";
+import { makeMove, isValidMove, getNewStates } from "../PlayerVsCPU/Moves";
 
 interface GameBoardProps {
   winner: string;
@@ -25,6 +27,7 @@ interface GameBoardProps {
   resetGame: () => void;
   open: boolean;
   setOpen: (arg0: boolean) => void;
+  cpuMode: boolean;
 }
 
 export const GameBoard = ({
@@ -43,10 +46,12 @@ export const GameBoard = ({
   resetGame,
   open,
   setOpen,
+  cpuMode,
 }: GameBoardProps) => {
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
   const [counterZIndex, setCounterZIndex] = useState<number>(10);
 
+  type BoardState = (string | null)[][];
   const checkForWin = (
     gameBoard: (string | null)[][],
     rowIndex: number,
@@ -152,6 +157,56 @@ export const GameBoard = ({
     setHoveredColumn(j);
   };
 
+  function isTerminal(node: {
+    state: BoardState;
+    rowIndex: number;
+    columnIndex: number;
+  }): boolean {
+    // check if this state is a win for the current player
+    if (checkForWin(node.state, node.rowIndex, node.columnIndex)) {
+      return true;
+    }
+
+    // check if the board state is a draw
+    // i.e., if there are no nulls left in the board (all cells are filled)
+    if (!node.state.some((row) => row.includes(null))) {
+      return true;
+    }
+
+    // if we haven't returned by now, the game isn't over
+    return false;
+  }
+
+  function minimax(
+    node: { state: BoardState; rowIndex: number; columnIndex: number },
+    depth: number,
+    maximizingPlayer: boolean,
+  ): number {
+    if (depth === 0 || isTerminal(node)) {
+      return evaluate(node.state);
+    }
+
+    if (maximizingPlayer) {
+      let value = -Number.MAX_VALUE;
+      const newStates = getNewStates(node.state, "PLAYER 2");
+      newStates.forEach((child: any) => {
+        let score = minimax(child, depth - 1, false); // switch to minimizing
+        value = Math.max(value, score);
+      });
+
+      return value;
+    } else {
+      let value = Number.MAX_VALUE;
+      const newStates = getNewStates(node.state, "PLAYER 1");
+      newStates.forEach((child: any) => {
+        let score = minimax(child, depth - 1, true); // switch to maximizing
+        value = Math.min(value, score);
+      });
+
+      return value;
+    }
+  }
+
   const renderGameBoard = (): React.ReactElement => {
     return (
       <>
@@ -229,6 +284,66 @@ export const GameBoard = ({
       </>
     );
   };
+
+  function isDraw(board: (string | null)[][]): boolean {
+    // Iterate over every cell in the top row (last available places to play a move)
+    for (let i = 0; i < board[0].length; i++) {
+      // If any cell in the top row is NULL, return false (game can still be played)
+      if (board[0][i] === null) {
+        return false;
+      }
+    }
+
+    // If we haven't returned yet, there must be no empty cells left
+    return true;
+  }
+
+  function getBestMove(board: (string | null)[][], depth: number): number {
+    let bestValue = -Number.MAX_VALUE; // Initialize bestValue
+    let moves: any[] = [];
+
+    for (let col = 0; col < board[0].length; col++) {
+      if (isValidMove(board, col)) {
+        let tempBoard = makeMove(board, col, "PLAYER 2"); // Assume the AI is 'PLAYER 2'
+        let tempRowIndex = tempBoard.findIndex(
+          (row) => row[col] === "PLAYER 2",
+        );
+        let boardState = {
+          state: tempBoard,
+          rowIndex: tempRowIndex,
+          columnIndex: col,
+        };
+        let moveValue = minimax(boardState, depth - 1, false); // calculate value of this move
+
+        // if this move's value is greater than the current bestValue, update bestValue and bestMove
+        if (moveValue > bestValue) {
+          bestValue = moveValue;
+          moves = [col];
+        } else if (moveValue === bestValue) {
+          moves.push(col);
+        }
+      }
+    }
+
+    // Choose a random move among the best moves
+    let finalMove = moves[Math.floor(Math.random() * moves.length)];
+
+    return finalMove; // This is the column that AI would like to drop its piece
+  }
+
+  // random number beween 1 and 5
+  const randomWaitTime = Math.floor(Math.random() * 5) + 1;
+
+  useEffect(() => {
+    if (cpuMode && playerTurn === "PLAYER 2") {
+      let bestMove = getBestMove(gameBoard, 4);
+      // wait 1 second before dropping the counter, but don't interfere with the turn timer
+      setTimeout(() => {
+        dropCounter(bestMove);
+      }, randomWaitTime * 1000);
+    }
+    isDraw(gameBoard) && setWinner("NOBODY");
+  }, [playerTurn]);
 
   const isPhone = window.innerWidth < 821;
 

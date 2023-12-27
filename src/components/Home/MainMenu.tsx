@@ -2,6 +2,7 @@ import React from "react";
 import "../../index.css";
 import logo from "../../assets/images/logo.svg";
 import pvp from "../../assets/images/player-vs-player.svg";
+import pve from "../../assets/images/player-vs-cpu.svg";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -45,10 +46,25 @@ export const DesktopMainMenu = () => {
               </Link>
             </div>
             <div className="flex items-center mt-[1.25rem]">
+              <Link to={"/pve"}>
+                <button
+                  className="lg:w-[25rem] w-[21rem] lg:h-[4.5rem] flex justify-between items-center rounded-[20px]
+                bg-[#FD6687] border-[3px] border-black shadow-mainCard px-[1.25rem] py-[0.625rem] text-white
+                text-[1.25rem] transition ease-in-out hover:-translate-y-1 hover:scale-110 duration-300"
+                >
+                  <h3 className="text-black font-main font-bold select-none">
+                    PLAYER VS CPU
+                  </h3>
+                  <img src={pve} alt="pvp" className="h-[2.5rem]" />
+                </button>
+              </Link>
+            </div>
+            <div className="flex items-center mt-[1.25rem]">
               <Link to={"/rules"}>
                 <button
                   className="lg:w-[25rem] w-[21rem] lg:h-[4.5rem] flex justify-between items-center rounded-[20px]
-                bg-[#FFF] border-[3px] border-black shadow-mainCard px-[1.25rem] py-[0.625rem] text-white text-[1.25rem] transition ease-in-out hover:-translate-y-1 hover:scale-110 duration-300"
+                bg-[#FFF] border-[3px] border-black shadow-mainCard px-[1.25rem] py-[0.625rem] text-white text-[1.25rem]
+                 transition ease-in-out hover:-translate-y-1 hover:scale-110 duration-300"
                 >
                   <h3 className="text-black font-main font-bold select-none">
                     GAME RULES

@@ -11,7 +11,11 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/rules" element={<Rules />} />
-        <Route path="/player-vs-player" element={<PlayerVsPlayer />} />
+        <Route
+          path="/player-vs-player"
+          element={<PlayerVsPlayer CPUMode={false} />}
+        />
+        <Route path="/pve" element={<PlayerVsPlayer CPUMode={true} />} />
       </Routes>
     </div>
   );

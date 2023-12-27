@@ -3,7 +3,11 @@ import { Nav } from "../Shared/Nav";
 import { GameBoard } from "../Shared/GameBoard";
 import Pause from "../Shared/Pause";
 
-export const PlayerVsPlayer = () => {
+interface PlayerVsPlayerProps {
+  CPUMode: boolean;
+}
+
+export const PlayerVsPlayer = ({ CPUMode }: PlayerVsPlayerProps) => {
   const [player1Score, setPlayer1Score] = useState<number>(0);
   const [player2Score, setPlayer2Score] = useState<number>(0);
   const [winner, setWinner] = useState<string>("");
@@ -49,6 +53,7 @@ export const PlayerVsPlayer = () => {
         resetGame={playAgain}
         open={open}
         setOpen={setOpen}
+        cpuMode={CPUMode}
       />
       <Pause open={open} setOpen={setOpen} restartGame={restartGame} />
       <div
