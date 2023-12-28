@@ -1,4 +1,7 @@
-export function evaluate(board: (string | null)[][]): number {
+export function evaluate(
+  board: (string | null)[][],
+  difficulty: number,
+): number {
   let score = 0;
 
   // Check horizontal streaks
@@ -11,7 +14,7 @@ export function evaluate(board: (string | null)[][]): number {
         board[row][col + 3],
       ];
 
-      score += evaluateStreak(streak);
+      score += evaluateStreak(streak, difficulty);
     }
   }
 
@@ -25,7 +28,7 @@ export function evaluate(board: (string | null)[][]): number {
         board[row + 3][col],
       ];
 
-      score += evaluateStreak(streak);
+      score += evaluateStreak(streak, difficulty);
     }
   }
 
@@ -39,7 +42,7 @@ export function evaluate(board: (string | null)[][]): number {
         board[row + 3][col + 3],
       ];
 
-      score += evaluateStreak(streak);
+      score += evaluateStreak(streak, difficulty);
     }
   }
 
@@ -53,14 +56,18 @@ export function evaluate(board: (string | null)[][]): number {
         board[row + 3][col - 3],
       ];
 
-      score += evaluateStreak(streak);
+      score += evaluateStreak(streak, difficulty);
     }
   }
 
   return score;
 }
 
-function evaluateStreak(streak: Array<string | null>): number {
+function evaluateStreak(
+  streak: Array<string | null>,
+  difficulty: number,
+  maxDifficulty: number = 5, // Max difficulty level
+): number {
   let score = 0;
 
   const numAIPlayer = streak.filter((value) => value === "PLAYER 2").length;
@@ -69,17 +76,17 @@ function evaluateStreak(streak: Array<string | null>): number {
   if (numAIPlayer === 4) {
     score += 100;
   } else if (numAIPlayer === 3 && numHumanPlayer === 0) {
-    score += 10;
+    score += (difficulty * 2) / maxDifficulty; // Normalize difficulty
   } else if (numAIPlayer === 2 && numHumanPlayer === 0) {
-    score += 3;
+    score += difficulty / maxDifficulty; // Normalize difficulty
   }
 
   if (numHumanPlayer === 4) {
     score -= 100;
   } else if (numHumanPlayer === 3 && numAIPlayer === 0) {
-    score -= 10;
+    score -= (difficulty * 2) / maxDifficulty; // Normalize difficulty
   } else if (numHumanPlayer === 2 && numAIPlayer === 0) {
-    score -= 3;
+    score -= difficulty / maxDifficulty; // Normalize difficulty
   }
 
   return score;

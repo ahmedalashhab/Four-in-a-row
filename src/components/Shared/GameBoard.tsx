@@ -28,6 +28,7 @@ interface GameBoardProps {
   open: boolean;
   setOpen: (arg0: boolean) => void;
   cpuMode: boolean;
+  difficulty: number;
 }
 
 export const GameBoard = ({
@@ -47,6 +48,7 @@ export const GameBoard = ({
   open,
   setOpen,
   cpuMode,
+  difficulty,
 }: GameBoardProps) => {
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
   const [counterZIndex, setCounterZIndex] = useState<number>(10);
@@ -181,16 +183,20 @@ export const GameBoard = ({
     node: { state: BoardState; rowIndex: number; columnIndex: number },
     depth: number,
     maximizingPlayer: boolean,
+    difficulty: number,
   ): number {
-    if (depth === 0 || isTerminal(node)) {
-      return evaluate(node.state);
+    // adjust depth based on difficulty
+    let adjustedDepth = Math.ceil((depth * difficulty) / 5); // or maybe something else?
+
+    if (adjustedDepth === 0 || isTerminal(node)) {
+      return evaluate(node.state, difficulty);
     }
 
     if (maximizingPlayer) {
       let value = -Number.MAX_VALUE;
       const newStates = getNewStates(node.state, "PLAYER 2");
       newStates.forEach((child: any) => {
-        let score = minimax(child, depth - 1, false); // switch to minimizing
+        let score = minimax(child, depth - 1, false, difficulty); // switch to minimizing
         value = Math.max(value, score);
       });
 
@@ -199,7 +205,7 @@ export const GameBoard = ({
       let value = Number.MAX_VALUE;
       const newStates = getNewStates(node.state, "PLAYER 1");
       newStates.forEach((child: any) => {
-        let score = minimax(child, depth - 1, true); // switch to maximizing
+        let score = minimax(child, depth - 1, true, difficulty); // switch to maximizing
         value = Math.min(value, score);
       });
 
@@ -315,7 +321,7 @@ export const GameBoard = ({
           rowIndex: tempRowIndex,
           columnIndex: col,
         };
-        let moveValue = minimax(boardState, depth - 1, false); // calculate value of this move
+        let moveValue = minimax(boardState, depth - 1, false, difficulty); // calculate value of this move
 
         // if this move's value is greater than the current bestValue, update bestValue and bestMove
         if (moveValue > bestValue) {
@@ -338,10 +344,11 @@ export const GameBoard = ({
 
   useEffect(() => {
     if (cpuMode && playerTurn === "PLAYER 2" && !winner) {
-      let bestMove = getBestMove(gameBoard, 4);
-      // wait 1 second before dropping the counter, but don't interfere with the turn timer
+      let bestMove = getBestMove(gameBoard, difficulty);
+      let randomColumn = Math.floor(Math.random() * 7);
+      // wait 1 second before dropping the counter
       setTimeout(() => {
-        dropCounter(bestMove);
+        difficulty === 0 ? dropCounter(randomColumn) : dropCounter(bestMove);
       }, randomWaitTime * 1000);
     }
     isDraw(gameBoard) && setWinner("NOBODY");

@@ -5,9 +5,13 @@ import Pause from "../Shared/Pause";
 
 interface PlayerVsPlayerProps {
   CPUMode: boolean;
+  difficulty: number;
 }
 
-export const PlayerVsPlayer = ({ CPUMode }: PlayerVsPlayerProps) => {
+export const PlayerVsPlayer = ({
+  CPUMode,
+  difficulty,
+}: PlayerVsPlayerProps) => {
   const [player1Score, setPlayer1Score] = useState<number>(0);
   const [player2Score, setPlayer2Score] = useState<number>(0);
   const [winner, setWinner] = useState<string>("");
@@ -54,6 +58,7 @@ export const PlayerVsPlayer = ({ CPUMode }: PlayerVsPlayerProps) => {
         open={open}
         setOpen={setOpen}
         cpuMode={CPUMode}
+        difficulty={difficulty}
       />
       <Pause open={open} setOpen={setOpen} restartGame={restartGame} />
       <div
