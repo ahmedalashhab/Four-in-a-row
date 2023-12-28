@@ -9,6 +9,14 @@ import { Settings } from "./components/Settings/Settings";
 function App() {
   const [difficulty, setDifficulty] = useState<number>(3);
 
+  //on boot, the difficulty is set to the value stored in the local storage
+  React.useEffect(() => {
+    const difficulty = localStorage.getItem("difficulty");
+    if (difficulty) {
+      setDifficulty(JSON.parse(difficulty));
+    }
+  }, []);
+
   return (
     <div className="max-h-screen min-h-fit m-0 p-0 w-screen h-[100svh] flex justify-center items-center flex-1">
       <Routes>
@@ -16,11 +24,23 @@ function App() {
         <Route path="/rules" element={<Rules />} />
         <Route
           path="/player-vs-player"
-          element={<PlayerVsPlayer CPUMode={false} difficulty={difficulty} />}
+          element={
+            <PlayerVsPlayer
+              CPUMode={false}
+              difficulty={difficulty}
+              setDifficulty={setDifficulty}
+            />
+          }
         />
         <Route
           path="/pve"
-          element={<PlayerVsPlayer CPUMode={true} difficulty={difficulty} />}
+          element={
+            <PlayerVsPlayer
+              CPUMode={true}
+              difficulty={difficulty}
+              setDifficulty={setDifficulty}
+            />
+          }
         />
         <Route
           path={"/settings"}

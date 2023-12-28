@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import React, { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 
@@ -12,6 +12,11 @@ interface DropDownProps {
 }
 
 export const DropDown = ({ difficulty, setDifficulty }: DropDownProps) => {
+  // whenever the user clicks on a difficulty, the difficulty state is updated in the local storage for persistance
+  React.useEffect(() => {
+    localStorage.setItem("difficulty", JSON.stringify(difficulty));
+  }, [difficulty]);
+
   return (
     <Menu as="div" className="relative inline-block text-left">
       <div>

@@ -6,11 +6,13 @@ import Pause from "../Shared/Pause";
 interface PlayerVsPlayerProps {
   CPUMode: boolean;
   difficulty: number;
+  setDifficulty: (arg0: number) => void;
 }
 
 export const PlayerVsPlayer = ({
   CPUMode,
   difficulty,
+  setDifficulty,
 }: PlayerVsPlayerProps) => {
   const [player1Score, setPlayer1Score] = useState<number>(0);
   const [player2Score, setPlayer2Score] = useState<number>(0);
@@ -28,6 +30,13 @@ export const PlayerVsPlayer = ({
     setTime(30);
     setWinner("");
   };
+
+  React.useEffect(() => {
+    const difficulty = localStorage.getItem("difficulty");
+    if (difficulty) {
+      setDifficulty(JSON.parse(difficulty));
+    }
+  }, []);
 
   const restartGame = (): void => {
     setGameBoard(Array(6).fill(Array(7).fill(null)));
