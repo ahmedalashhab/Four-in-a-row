@@ -6,6 +6,7 @@ import pve from "../../assets/images/player-vs-cpu.svg";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import settings from "../../assets/images/settings.svg";
+import rules from "../../assets/images/rules.svg";
 
 interface GameLinkButtonProps {
   to: string;
@@ -90,7 +91,12 @@ export const DesktopMainMenu = () => {
               SETTINGS
             </GameLinkButton>
 
-            <GameLinkButton to="/rules" backgroundColor="#FFF" color="black">
+            <GameLinkButton
+              to="/rules"
+              backgroundColor="#FFF"
+              color="black"
+              imgSrc={rules}
+            >
               GAME RULES
             </GameLinkButton>
           </div>
