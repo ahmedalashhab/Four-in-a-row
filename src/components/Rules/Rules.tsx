@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 export const Rules = () => {
   return (
-    <div className="w-screen h-[100svh] bg-[#7945FF] justify-center items-center flex">
+    <div className="w-screen h-[100svh] bg-[#7945FF] justify-center items-center flex select-none">
       <motion.div
         initial={{ y: -700 }}
         animate={{ y: 0 }}

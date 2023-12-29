@@ -28,7 +28,7 @@ const GameLinkButton: FC<GameLinkButtonProps> = ({
       <button
         className={`lg:w-[25rem] w-[21rem] lg:h-[4.5rem] h-[4rem] flex justify-between items-center rounded-[20px]
           bg-[${backgroundColor}] border-[3px] border-black shadow-mainCard px-[1.25rem] py-[0.625rem] text-white
-          text-[1.25rem] transition ease-in-out hover:-translate-y-1 hover:scale-110 duration-300`}
+          text-[1.25rem] transition ease-in-out hover:-translate-y-1 hover:scale-110 duration-300 select-none`}
       >
         <h3 className={`text-${color} font-main font-bold select-none`}>
           {children}
