@@ -7,7 +7,7 @@ import { PlayerVsPlayer } from "./components/PlayerVsPlayer/Player-Vs-Player";
 import { Settings } from "./components/Settings/Settings";
 
 function App() {
-  const [difficulty, setDifficulty] = useState<number>(3);
+  const [difficulty, setDifficulty] = useState<number>(6);
 
   //on boot, the difficulty is set to the value stored in the local storage
   React.useEffect(() => {
