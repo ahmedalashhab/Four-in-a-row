@@ -355,7 +355,7 @@ export const GameBoard = ({
     setTimeout(() => {
       setCounterStutter(!counterStutter);
     }, randomWaitTime * 1000);
-  }, [playerTurn]);
+  }, [playerTurn, winner]);
 
   useEffect(() => {
     if (cpuMode && playerTurn === "PLAYER 2" && !winner) {
