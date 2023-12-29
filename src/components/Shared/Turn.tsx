@@ -46,7 +46,7 @@ export const Turn = ({
     }, 1000);
 
     // When time is 0, make random move
-    if (time === 0 && !open) {
+    if (time === 0 && !open && !winner) {
       let randomNum;
       do {
         randomNum = Math.floor(Math.random() * 7);
