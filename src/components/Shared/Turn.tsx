@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import turn_red from "../../assets/images/turn-background-red.svg";
 import turn_yellow from "../../assets/images/turn-background-yellow.svg";
-import player1 from "../../assets/images/player-one.svg";
-import player2 from "../../assets/images/player-two.svg";
+import { isValidMove } from "../PlayerVsCPU/Moves";
 
 interface TurnProps {
   time: number;
@@ -15,6 +14,8 @@ interface TurnProps {
   resetGame: () => void;
   open: boolean;
   setOpen: (arg0: boolean) => void;
+  dropCounter: (columnIndex: number) => void;
+  gameBoard: (string | null)[][];
 }
 
 export const Turn = ({
@@ -28,21 +29,37 @@ export const Turn = ({
   resetGame,
   open,
   setOpen,
+  dropCounter,
+  gameBoard,
 }: TurnProps) => {
+  // generate a random number between 1 and 7 then check if the move is valid
+  const [randomNum, setRandomNum] = useState<number>(0);
   const handleClick = () => {
+    dropCounter(randomNum);
     setPlayerTurn(playerTurn === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1");
     setTime(30);
   };
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      !open && setTime(time - 1);
-      if (time === 0) {
-        handleClick();
-      }
+      !open && setTime((prevTime: number) => prevTime - 1);
     }, 1000);
-    return () => clearTimeout(timer);
-  }, [time, open]);
+
+    // When time is 0, make random move
+    if (time === 0 && !open) {
+      let randomNum;
+      do {
+        randomNum = Math.floor(Math.random() * 7);
+      } while (!isValidMove(gameBoard, randomNum));
+      setRandomNum(randomNum);
+      handleClick();
+    }
+
+    // Cleanup
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [time, open, gameBoard]);
 
   useEffect(() => {
     setTime(30);

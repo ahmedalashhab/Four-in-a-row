@@ -405,6 +405,8 @@ export const GameBoard = ({
           resetGame={resetGame}
           open={open}
           setOpen={setOpen}
+          dropCounter={dropCounter}
+          gameBoard={gameBoard}
         />
       </div>
       {!isPhone && <Player pNumber={2} score={player2Score} />}
