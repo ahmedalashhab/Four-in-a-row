@@ -236,14 +236,16 @@ export const GameBoard = ({
                 }
               }}
             >
-              {hoveredColumn === j && !isPhone && (
-                <img
-                  src={playerTurn === "PLAYER 1" ? marker_red : marker_yellow}
-                  alt="marker"
-                  className={`lg:w-[3.5rem] w-[2rem] lg:h-auto select-none z-50 absolute top-0 lg:translate-y-[-4.5rem] 
+              {hoveredColumn === j &&
+                !isPhone &&
+                ((cpuMode && playerTurn === "PLAYER 1") || !cpuMode) && (
+                  <img
+                    src={playerTurn === "PLAYER 1" ? marker_red : marker_yellow}
+                    alt="marker"
+                    className={`lg:w-[3.5rem] w-[2rem] lg:h-auto select-none z-50 absolute top-0 lg:translate-y-[-4.5rem] 
                   translate-y-[-3rem] lg:mr-1`}
-                />
-              )}
+                  />
+                )}
               {gameBoard.map((row: any, i) => (
                 <div
                   key={i}
