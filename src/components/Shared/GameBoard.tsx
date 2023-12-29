@@ -29,6 +29,8 @@ interface GameBoardProps {
   setOpen: (arg0: boolean) => void;
   cpuMode: boolean;
   difficulty: number;
+  setLastGameWinner: (arg0: string) => void;
+  lastGameWinner: string | null;
 }
 
 export const GameBoard = ({
@@ -49,9 +51,12 @@ export const GameBoard = ({
   setOpen,
   cpuMode,
   difficulty,
+  setLastGameWinner,
+  lastGameWinner,
 }: GameBoardProps) => {
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
   const [counterZIndex, setCounterZIndex] = useState<number>(10);
+  const [counterStutter, setCounterStutter] = useState<boolean>(false);
 
   type BoardState = (string | null)[][];
   const checkForWin = (
@@ -128,6 +133,8 @@ export const GameBoard = ({
           setPlayer2Score((prevPlayer2Score: number) => prevPlayer2Score + 1);
         }
         setWinner(playerTurn);
+        setLastGameWinner(playerTurn);
+
         // End the game and display the winner
 
         return;
@@ -343,16 +350,22 @@ export const GameBoard = ({
   const randomWaitTime = Math.floor(Math.random() * 5) + 1;
 
   useEffect(() => {
+    // whenever player 1 plays, wait 1 second before player 2 plays
+    // this is to prevent a stutter when the minimax algorithm is calculating the best move
+    setTimeout(() => {
+      setCounterStutter(!counterStutter);
+    }, randomWaitTime * 1000);
+  }, [playerTurn]);
+
+  useEffect(() => {
     if (cpuMode && playerTurn === "PLAYER 2" && !winner) {
       let bestMove = getBestMove(gameBoard, difficulty);
       let randomColumn = Math.floor(Math.random() * 7);
       // wait 1 second before dropping the counter
-      setTimeout(() => {
-        difficulty === 0 ? dropCounter(randomColumn) : dropCounter(bestMove);
-      }, randomWaitTime * 1000);
+      difficulty === 0 ? dropCounter(randomColumn) : dropCounter(bestMove);
     }
     isDraw(gameBoard) && setWinner("NOBODY");
-  }, [playerTurn]);
+  }, [counterStutter]);
 
   const isPhone = window.innerWidth < 821;
 

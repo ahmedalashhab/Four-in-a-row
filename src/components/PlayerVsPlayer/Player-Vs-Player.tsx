@@ -23,12 +23,17 @@ export const PlayerVsPlayer = ({
     Array(6).fill(Array(7).fill(null)),
   );
   const [open, setOpen] = useState<boolean>(false);
+  const [lastGameWinner, setLastGameWinner] = useState<string | null>(null);
 
   const playAgain = (): void => {
     setGameBoard(Array(6).fill(Array(7).fill(null)));
-    setPlayerTurn("PLAYER 1");
     setTime(30);
     setWinner("");
+    if (lastGameWinner) {
+      setPlayerTurn(lastGameWinner);
+    } else {
+      setPlayerTurn("PLAYER 1");
+    }
   };
 
   React.useEffect(() => {
@@ -68,6 +73,8 @@ export const PlayerVsPlayer = ({
         setOpen={setOpen}
         cpuMode={CPUMode}
         difficulty={difficulty}
+        setLastGameWinner={setLastGameWinner}
+        lastGameWinner={lastGameWinner}
       />
       <Pause open={open} setOpen={setOpen} restartGame={restartGame} />
       <div
