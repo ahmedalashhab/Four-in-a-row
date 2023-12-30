@@ -47,7 +47,7 @@ export const Rules = () => {
 
             <div className="font-bold">4</div>
             <div>
-              The starter of the previous game goes second on the next game.
+              The winner of the previous game goes first on the next game.
             </div>
           </div>
         </div>
