@@ -23,6 +23,7 @@ export const SignInWithGoogle = (setUser, user) => {
       const user = result.user;
       localStorage.setItem("user", JSON.stringify(user));
       setUser(user);
+      console.log(user);
     })
     .catch((error) => {
       // Handle Errors here.
