@@ -28,10 +28,10 @@ export const GameLinkButton: FC<GameLinkButtonProps> = ({
     <Link to={to}>
       <button
         className={`lg:w-[25rem] w-[21rem] lg:h-[4.5rem] h-[4rem] flex justify-between items-center rounded-[20px]
-          bg-[${backgroundColor}] border-[3px] border-black shadow-mainCard px-[1.25rem] py-[0.625rem] text-white
-          text-[1.25rem] transition ease-in-out hover:-translate-y-1 hover:scale-110 duration-300 select-none`}
+        border-[3px] ${backgroundColor} border-black shadow-mainCard px-[1.25rem] py-[0.625rem] text-white
+        text-[1.25rem] transition ease-in-out hover:-translate-y-1 hover:scale-110 duration-300 select-none`}
         {...rest}
-      >
+        >
         <h3 className={`text-${color} font-main font-bold select-none`}>
           {children}
         </h3>
@@ -68,7 +68,7 @@ export const DesktopMainMenu = () => {
           <div className="flex flex-col justify-center items-center mt-[3.75rem]">
             <GameLinkButton
               to="/pvp"
-              backgroundColor="#FFCE67"
+              backgroundColor={"bg-[#FFCE67]"}
               color="black"
               imgSrc={pvp}
             >
@@ -77,7 +77,7 @@ export const DesktopMainMenu = () => {
 
             <GameLinkButton
               to="/pve"
-              backgroundColor="#FD6687"
+              backgroundColor={"bg-[#FD6687]"}
               color="black"
               imgSrc={pve}
             >
@@ -86,7 +86,7 @@ export const DesktopMainMenu = () => {
 
             <GameLinkButton
               to="/settings"
-              backgroundColor="#FFF"
+              backgroundColor={"bg-[#FFF]"}
               color="black"
               imgSrc={settings}
             >
@@ -95,7 +95,7 @@ export const DesktopMainMenu = () => {
 
             <GameLinkButton
               to="/rules"
-              backgroundColor="#FFF"
+              backgroundColor={"bg-[#FFF]"}
               color="black"
               imgSrc={rules}
             >

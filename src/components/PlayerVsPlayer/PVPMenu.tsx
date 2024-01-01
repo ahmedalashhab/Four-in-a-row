@@ -1,9 +1,8 @@
-import React from "react";
 import { motion } from "framer-motion";
-import pvp from "../../assets/images/player-vs-player.svg";
-import { GameLinkButton } from "../Home/MainMenu";
 import back from "../../assets/images/back.svg";
 import online from "../../assets/images/online.svg";
+import pvp from "../../assets/images/player-vs-player.svg";
+import { GameLinkButton } from "../Home/MainMenu";
 
 export const PVPMenu = () => {
   return (
@@ -21,7 +20,7 @@ export const PVPMenu = () => {
         className="lg:h-fit lg:w-[30rem] relative flex items-center justify-center h-[100svh] w-screen lg:rounded-[2.5rem]
          bg-[#7945FF] lg:border-[3px] lg:border-black lg:shadow-mainCard lg:px-[2.5rem] lg:py-[3.75rem]"
       >
-        <div className="flex flex-col justify-center items-center">
+        <div className="flex flex-col items-center justify-center">
           <div className="grid-cols-2">
             <h3 className="text-white font-bold text-[56px] select-none">
               MULTIPLAYER
@@ -30,7 +29,7 @@ export const PVPMenu = () => {
           <div className="flex flex-col justify-center items-center mt-[3.75rem]">
             <GameLinkButton
               to="/pvp/offline"
-              backgroundColor="#FFCE67"
+              backgroundColor={"bg-[#FFCE67]"}
               color="black"
               imgSrc={pvp}
             >
@@ -38,7 +37,7 @@ export const PVPMenu = () => {
             </GameLinkButton>
             <GameLinkButton
               to="/pvp/online"
-              backgroundColor="#74A4BC"
+              backgroundColor={"bg-[#74A4BC]"}
               color="black"
               imgSrc={online}
             >
@@ -46,7 +45,7 @@ export const PVPMenu = () => {
             </GameLinkButton>
             <GameLinkButton
               to="/"
-              backgroundColor="#FFF"
+              backgroundColor={"bg-[#FFF]"}
               color="black"
               imgSrc={back}
             >
