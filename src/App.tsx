@@ -39,13 +39,7 @@ function App() {
         />
         <Route
           path="/pvp/online"
-          element={
-            <PlayerVsPlayer
-              CPUMode={false}
-              difficulty={difficulty}
-              setDifficulty={setDifficulty}
-            />
-          }
+          element={<SignIn user={user} setUser={setUser} />}
         />
         <Route
           path="/pve"
