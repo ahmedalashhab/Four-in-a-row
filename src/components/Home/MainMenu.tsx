@@ -16,7 +16,7 @@ interface GameLinkButtonProps extends ComponentProps<"button"> {
   children: string;
 }
 
-const GameLinkButton: FC<GameLinkButtonProps> = ({
+export const GameLinkButton: FC<GameLinkButtonProps> = ({
   to,
   backgroundColor,
   color,
@@ -67,7 +67,7 @@ export const DesktopMainMenu = () => {
           </div>
           <div className="flex flex-col justify-center items-center mt-[3.75rem]">
             <GameLinkButton
-              to="/player-vs-player"
+              to="/pvp"
               backgroundColor="#FFCE67"
               color="black"
               imgSrc={pvp}

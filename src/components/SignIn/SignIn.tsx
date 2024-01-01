@@ -32,8 +32,8 @@ export const SignIn = ({ user, setUser }: SignInProps) => {
         <div className="flex justify-center">
           <button
             onClick={() => SignInWithGoogle(setUser, user)}
-            className=" bg-yellow-400 text-black font-bold text-[1.25rem] rounded-[20px] shadow-mainCard border-[3px] py-2 px-6 border-black
-            transition ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-[#FD6687] duration-300 select-none"
+            className=" bg-[#FFCE67] text-black font-bold text-[1.25rem] rounded-[20px] shadow-mainCard border-[3px] py-2 px-6 border-black
+            transition ease-in-out hover:-translate-y-1 hover:scale-110 hover:brightness-125 duration-300 select-none"
           >
             Sign in with Google
           </button>

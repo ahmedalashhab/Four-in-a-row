@@ -7,6 +7,7 @@ import { Rules } from "./components/Rules/Rules";
 import { Settings } from "./components/Settings/Settings";
 import { SignIn } from "./components/SignIn/SignIn";
 import firebase from "firebase/compat";
+import { PVPMenu } from "./components/PlayerVsPlayer/PVPMenu";
 
 function App() {
   const [difficulty, setDifficulty] = useState<number>(2);
@@ -25,8 +26,19 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/rules" element={<Rules />} />
+        <Route path="/pvp" element={<PVPMenu />} />
         <Route
-          path="/pvp"
+          path="/pvp/offline"
+          element={
+            <PlayerVsPlayer
+              CPUMode={false}
+              difficulty={difficulty}
+              setDifficulty={setDifficulty}
+            />
+          }
+        />
+        <Route
+          path="/pvp/online"
           element={
             <PlayerVsPlayer
               CPUMode={false}
