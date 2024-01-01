@@ -5,9 +5,12 @@ import { Home } from "./components/Home/Home";
 import { Rules } from "./components/Rules/Rules";
 import { PlayerVsPlayer } from "./components/PlayerVsPlayer/Player-Vs-Player";
 import { Settings } from "./components/Settings/Settings";
+import { SignIn } from "./components/SignIn/SignIn";
+import firebase from "firebase/compat";
 
 function App() {
   const [difficulty, setDifficulty] = useState<number>(2);
+  const [user, setUser] = useState<firebase.User | null>(null);
 
   //on boot, the difficulty is set to the value stored in the local storage
   React.useEffect(() => {
@@ -23,7 +26,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/rules" element={<Rules />} />
         <Route
-          path="/player-vs-player"
+          path="/pvp"
           element={
             <PlayerVsPlayer
               CPUMode={false}
@@ -47,6 +50,10 @@ function App() {
           element={
             <Settings difficulty={difficulty} setDifficulty={setDifficulty} />
           }
+        />
+        <Route
+          path={"/sign-in"}
+          element={<SignIn user={user} setUser={setUser} />}
         />
       </Routes>
     </div>
