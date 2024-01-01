@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Nav } from "../Shared/Nav";
 import { GameBoard } from "../Shared/GameBoard";
+import { Nav } from "../Shared/Nav";
 import Pause from "../Shared/Pause";
 
 interface PlayerVsPlayerProps {
