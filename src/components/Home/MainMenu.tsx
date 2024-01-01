@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import settings from "../../assets/images/settings.svg";
 import rules from "../../assets/images/rules.svg";
 
-interface GameLinkButtonProps {
+export interface GameLinkButtonProps {
   to: string;
   backgroundColor: string;
   color: string;
@@ -16,7 +16,7 @@ interface GameLinkButtonProps {
   children: string;
 }
 
-const GameLinkButton: FC<GameLinkButtonProps> = ({
+export const GameLinkButton: FC<GameLinkButtonProps> = ({
   to,
   backgroundColor,
   color,
@@ -65,7 +65,7 @@ export const DesktopMainMenu = () => {
           </div>
           <div className="flex flex-col justify-center items-center mt-[3.75rem]">
             <GameLinkButton
-              to="/player-vs-player"
+              to="/pvp"
               backgroundColor="#FFCE67"
               color="black"
               imgSrc={pvp}
