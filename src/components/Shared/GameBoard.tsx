@@ -1,15 +1,15 @@
+import { motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
-import { Player } from "./Player";
-import board_white from "../../assets/images/board-layer-white-large.svg";
 import board_black from "../../assets/images/board-layer-black-large.svg";
-import { Turn } from "./Turn";
-import marker_red from "../../assets/images/marker-red.svg";
-import marker_yellow from "../../assets/images/marker-yellow.svg";
+import board_white from "../../assets/images/board-layer-white-large.svg";
 import counter_red from "../../assets/images/counter-red-large.svg";
 import counter_yellow from "../../assets/images/counter-yellow-large.svg";
-import { motion } from "framer-motion";
+import marker_red from "../../assets/images/marker-red.svg";
+import marker_yellow from "../../assets/images/marker-yellow.svg";
 import { evaluate } from "../PlayerVsCPU/Evaluate";
-import { makeMove, isValidMove, getNewStates } from "../PlayerVsCPU/Moves";
+import { getNewStates, isValidMove, makeMove } from "../PlayerVsCPU/Moves";
+import { Player } from "./Player";
+import { Turn } from "./Turn";
 
 interface GameBoardProps {
   winner: string;
@@ -223,11 +223,11 @@ export const GameBoard = ({
   const renderGameBoard = (): React.ReactElement => {
     return (
       <>
-        <div className="flex lg:ml-2 lg:mt-2 lg:pl-0 z-50 absolute">
+        <div className="absolute z-50 flex lg:ml-2 lg:mt-2 lg:pl-0">
           {gameBoard[0].map((cell, j) => (
             <div
               key={j}
-              className="flex flex-col items-center relative lg:mb-8 mb-4 cursor-pointer"
+              className="relative flex flex-col items-center mb-4 cursor-pointer lg:mb-8"
               onMouseEnter={() => !winner && gameBoardWhiteHover(j)}
               onMouseLeave={() => !winner && gameBoardWhiteHover(null)}
               onClick={() => {
@@ -377,14 +377,14 @@ export const GameBoard = ({
       initial={{ x: "100vw" }}
       animate={{ x: 0 }}
       transition={{ type: "spring", stiffness: 100 }}
-      className="flex lg:flex-row flex-col items-center z-20 lg:pr-12"
+      className="z-20 flex flex-col items-center lg:flex-row lg:pr-12"
     >
       <div className="flex justify-between mb-[1.5rem] lg:mb-0 w-screen lg:w-auto px-5">
         <div>{isPhone && <Player pNumber={1} score={player1Score} />}</div>
         <div>{isPhone && <Player pNumber={2} score={player2Score} />}</div>
       </div>
       {!isPhone && <Player pNumber={1} score={player1Score} />}
-      <div className="justify-center items-center flex relative">
+      <div className="relative flex items-center justify-center">
         <img
           src={board_white}
           className={`relative z-${counterZIndex} select-none px-4 w-[24.2rem] sm:w-[40rem] md:w-[43.5rem] md:mt-3 lg:w-[35rem] h-auto`}

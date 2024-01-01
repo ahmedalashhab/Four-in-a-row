@@ -1,4 +1,3 @@
-import React from "react";
 // @ts-ignore
 import player1 from "../../assets/images/player-one.svg";
 // @ts-ignore
@@ -29,7 +28,7 @@ export const Player = ({ pNumber, score }: PlayerProps) => {
         }`}
         alt="player"
       />
-      <div className="flex flex-col lg:translate-y-5 justify-center items-center">
+      <div className="flex flex-col items-center justify-center lg:translate-y-5">
         <h3 className="lg:text-[20px] text-[16px]">PLAYER {pNumber}</h3>
         <span className="lg:text-[56px] text-[32px] mt-[-10px]">{score}</span>
       </div>

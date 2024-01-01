@@ -1,7 +1,7 @@
-import React, { FC } from "react";
-import iconCheck from "../../assets/images/icon-check.svg";
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import React, { FC } from "react";
+import { Link } from "react-router-dom";
+import iconCheck from "../../assets/images/icon-check.svg";
 import { DropDown } from "./DropDown";
 
 interface SettingsProps {
@@ -27,7 +27,7 @@ export const Settings: FC<SettingsProps> = ({ difficulty, setDifficulty }) => {
         <div className="flex justify-center">
           <h1 className="font-bold text-[3.5rem]">SETTINGS</h1>
         </div>
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <h2 className="text-[#7945FF] font-bold text-[1.25rem]">
             DIFFICULTY
           </h2>
@@ -36,12 +36,12 @@ export const Settings: FC<SettingsProps> = ({ difficulty, setDifficulty }) => {
         <div className="flex justify-center">
           <Link
             to={"/"}
-            className="absolute ease-in-out bottom-0 translate-y-1/2"
+            className="absolute bottom-0 ease-in-out translate-y-1/2"
           >
             <img
               src={iconCheck}
               alt="accept"
-              className="transition cursor-pointer hover:-translate-y-1 hover:scale-110 duration-300"
+              className="transition duration-300 cursor-pointer hover:-translate-y-1 hover:scale-110"
             />
           </Link>
         </div>

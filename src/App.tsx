@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import "./App.css";
 import { Home } from "./components/Home/Home";
-import { Rules } from "./components/Rules/Rules";
 import { PlayerVsPlayer } from "./components/PlayerVsPlayer/Player-Vs-Player";
+import { Rules } from "./components/Rules/Rules";
 import { Settings } from "./components/Settings/Settings";
 
 function App() {

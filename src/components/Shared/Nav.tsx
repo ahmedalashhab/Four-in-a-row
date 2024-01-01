@@ -1,8 +1,5 @@
-import React from "react";
 // @ts-ignore
 import logo from "../../assets/images/logo.svg";
-import { Link } from "react-router-dom";
-import { Home } from "../Home/Home";
 
 interface NavProps {
   restartGame: () => void;
