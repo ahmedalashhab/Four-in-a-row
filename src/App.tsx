@@ -3,24 +3,23 @@ import { Route, Routes } from "react-router-dom";
 import "./App.css";
 import { Home } from "./components/Home/Home";
 import { PlayerVsPlayer } from "./components/PlayerVsPlayer/Player-Vs-Player";
+import { PVPMenu } from "./components/PlayerVsPlayer/PVPMenu";
 import { Rules } from "./components/Rules/Rules";
 import { Settings } from "./components/Settings/Settings";
 import { SignIn } from "./components/SignIn/SignIn";
-import firebase from "firebase/compat";
-import { PVPMenu } from "./components/PlayerVsPlayer/PVPMenu";
 
 function App() {
   const [difficulty, setDifficulty] = useState<number>(2);
-  const [user, setUser] = useState<firebase.User | null>(null);
 
   //on boot, the difficulty is set to the value stored in the local storage
+
   React.useEffect(() => {
     const difficulty = localStorage.getItem("difficulty");
     if (difficulty) {
       setDifficulty(JSON.parse(difficulty));
     }
   }, []);
-
+  
   return (
     <div className="max-h-screen min-h-fit m-0 p-0 w-screen h-[100svh] flex justify-center items-center flex-1">
       <Routes>
@@ -39,7 +38,7 @@ function App() {
         />
         <Route
           path="/pvp/online"
-          element={<SignIn user={user} setUser={setUser} />}
+          element={<SignIn />}
         />
         <Route
           path="/pve"
@@ -59,7 +58,7 @@ function App() {
         />
         <Route
           path={"/sign-in"}
-          element={<SignIn user={user} setUser={setUser} />}
+          element={<SignIn  />}
         />
       </Routes>
     </div>

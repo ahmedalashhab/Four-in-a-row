@@ -1,16 +1,13 @@
-import React from "react";
-import iconCheck from "../../assets/images/icon-check.svg";
-import { Link } from "react-router-dom";
+import { clsx } from "clsx";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import iconCheck from "../../assets/images/icon-check.svg";
 import { SignInWithGoogle } from "../../firebase/Firebase";
-import firebase from "firebase/compat";
+import { useUser } from "../../hooks/useUser";
 
-interface SignInProps {
-  user: firebase.User | null;
-  setUser: React.Dispatch<React.SetStateAction<firebase.User | null>>;
-}
-
-export const SignIn = ({ user, setUser }: SignInProps) => {
+export const SignIn = () => {
+  const {user, loading} = useUser();
+  console.log(user)
   return (
     <div className="w-screen h-[100svh] bg-[#7945FF] justify-center items-center flex select-none">
       <motion.div
@@ -26,27 +23,37 @@ export const SignIn = ({ user, setUser }: SignInProps) => {
          relative flex flex-col font-main gap-[2rem]"
       >
         <div className="flex justify-center">
-          <h1 className="font-bold text-[3.5rem]">SIGN IN</h1>
+          {!loading && <h1 className="font-bold text-[3.5rem]">
+            {user ? "ONLINE PVP" : "SIGN IN"}
+          </h1>}
         </div>
         {/*  sign in with google*/}
-        <div className="flex justify-center">
+        {!loading && <div className="flex flex-col justify-center gap-5">
           <button
-            onClick={() => SignInWithGoogle(setUser, user)}
-            className=" bg-[#FFCE67] text-black font-bold text-[1.25rem] rounded-[20px] shadow-mainCard border-[3px] py-2 px-6 border-black
-            transition ease-in-out hover:-translate-y-1 hover:scale-110 hover:brightness-125 duration-300 select-none"
+            onClick={() => SignInWithGoogle()}
+            className={clsx(" text-black font-bold text-[1.25rem] rounded-[20px] border-[3px] py-2 px-6 border-black",
+            "transition ease-in-out hover:-translate-y-1 hover:scale-110 hover:brightness-125 duration-300 select-none", 
+            user ? "pointer-events-none bg-[#e0e0e0]" : "shadow-mainCard bg-[#FFCE67]")}
           >
-            Sign in with Google
+            Logged in as: {loading ? "Loading..." : user ? user.displayName : "Sign in with Google"}
           </button>
-        </div>
+          <button
+                 className={clsx("bg-[#67ffb8] text-black font-bold text-[1.25rem] rounded-[20px] shadow-mainCard border-[3px] py-2 px-6 border-black",
+                 "transition ease-in-out hover:-translate-y-1 hover:scale-110 hover:brightness-125 duration-300 select-none", 
+                )}
+          >
+            Create room
+          </button>
+        </div>}
         <div className="flex justify-center">
           <Link
             to={"/"}
-            className="absolute ease-in-out bottom-0 translate-y-1/2"
+            className="absolute bottom-0 ease-in-out translate-y-1/2"
           >
             <img
               src={iconCheck}
               alt="accept"
-              className="transition cursor-pointer hover:-translate-y-1 hover:scale-110 duration-300"
+              className="transition duration-300 cursor-pointer hover:-translate-y-1 hover:scale-110"
             />
           </Link>
         </div>
