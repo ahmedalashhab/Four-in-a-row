@@ -35,15 +35,15 @@ export const SignIn = () => {
             "transition ease-in-out hover:-translate-y-1 hover:scale-110 hover:brightness-125 duration-300 select-none", 
             user ? "pointer-events-none bg-[#e0e0e0]" : "shadow-mainCard bg-[#FFCE67]")}
           >
-            Logged in as: {loading ? "Loading..." : user ? user.displayName : "Sign in with Google"}
+           {loading ? "Loading..." : user ? `Logged in as: ${user.displayName}` : "Sign in with Google"}
           </button>
-          <button
+          {user && <button
                  className={clsx("bg-[#67ffb8] text-black font-bold text-[1.25rem] rounded-[20px] shadow-mainCard border-[3px] py-2 px-6 border-black",
                  "transition ease-in-out hover:-translate-y-1 hover:scale-110 hover:brightness-125 duration-300 select-none", 
                 )}
           >
             Create room
-          </button>
+          </button>}
         </div>}
         <div className="flex justify-center">
           <Link

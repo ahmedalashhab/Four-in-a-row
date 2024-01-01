@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import {
   getAuth,
-  GoogleAuthProvider, signInAnonymously, signInWithPopup
+  GoogleAuthProvider, signInAnonymously, signInWithPopup, signOut
 } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 import { firebaseConfig } from "./firebaseConfig";
@@ -21,6 +21,10 @@ export const SignInWithGoogle = () => {
       console.log(error);
     });
 };
+
+export const SignOut = () => {
+  signOut(auth);
+}
 
 export const SignInAnonymously = () => {
   signInAnonymously(auth)
