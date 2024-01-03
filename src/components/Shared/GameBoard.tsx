@@ -228,6 +228,7 @@ export const GameBoard = ({
       <>
         <div className="absolute z-50 flex lg:ml-2 lg:mt-2 lg:pl-0">
           {gameBoard[0].map((cell, j) => (
+            // TODO: HAVE A DEFAULT EMPTY STATE FOR THE GAMEBOARD UPLOADED TO FIREBASE PRIOR TO RENDERING WHEN STARTING A NEW GAME ONLINE
             <div
               key={j}
               className="relative flex flex-col items-center mb-4 cursor-pointer lg:mb-8"
