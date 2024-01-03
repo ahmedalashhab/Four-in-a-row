@@ -1,13 +1,28 @@
 import { clsx } from "clsx";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import iconCheck from "../../assets/images/icon-check.svg";
-import { SignInWithGoogle } from "../../firebase/Firebase";
+import { SignInWithGoogle } from "../../firebase/firebase";
 import { useUser } from "../../hooks/useUser";
+import { createRoom } from "../PlayerVsPlayer/Rooms";
+import { gameInitialState } from "../Shared/GameBoard";
 
 export const SignIn = () => {
-  const {user, loading} = useUser();
-  console.log(user)
+  const { user, loading } = useUser();
+  console.log(user);
+
+  const navigate = useNavigate();
+
+  const handleCreateRoom = async (username: string) => {
+    try {
+      const newRoomId = await createRoom(username, gameInitialState);
+      navigate(`/pvp/online/rooms/${newRoomId}`);
+    } catch (err) {
+      console.error(err);
+      // Handle error
+    }
+  };
+
   return (
     <div className="w-screen h-[100svh] bg-[#7945FF] justify-center items-center flex select-none">
       <motion.div
@@ -23,28 +38,44 @@ export const SignIn = () => {
          relative flex flex-col font-main gap-[2rem]"
       >
         <div className="flex justify-center">
-          {!loading && <h1 className="font-bold text-[3.5rem]">
-            {user ? "ONLINE PVP" : "SIGN IN"}
-          </h1>}
+          {!loading && (
+            <h1 className="font-bold text-[3.5rem]">
+              {user ? "ONLINE PVP" : "SIGN IN"}
+            </h1>
+          )}
         </div>
         {/*  sign in with google*/}
-        {!loading && <div className="flex flex-col justify-center gap-5">
-          <button
-            onClick={() => SignInWithGoogle()}
-            className={clsx(" text-black font-bold text-[1.25rem] rounded-[20px] border-[3px] py-2 px-6 border-black",
-            "transition ease-in-out hover:-translate-y-1 hover:scale-110 hover:brightness-125 duration-300 select-none", 
-            user ? "pointer-events-none bg-[#e0e0e0]" : "shadow-mainCard bg-[#FFCE67]")}
-          >
-           {loading ? "Loading..." : user ? `Logged in as: ${user.displayName}` : "Sign in with Google"}
-          </button>
-          {user && <button
-                 className={clsx("bg-[#67ffb8] text-black font-bold text-[1.25rem] rounded-[20px] shadow-mainCard border-[3px] py-2 px-6 border-black",
-                 "transition ease-in-out hover:-translate-y-1 hover:scale-110 hover:brightness-125 duration-300 select-none", 
+        {!loading && (
+          <div className="flex flex-col justify-center gap-5">
+            <button
+              onClick={() => SignInWithGoogle()}
+              className={clsx(
+                " text-black font-bold text-[1.25rem] rounded-[20px] border-[3px] py-2 px-6 border-black",
+                "transition ease-in-out hover:-translate-y-1 hover:scale-110 hover:brightness-125 duration-300 select-none",
+                user
+                  ? "pointer-events-none bg-[#e0e0e0]"
+                  : "shadow-mainCard bg-[#FFCE67]",
+              )}
+            >
+              {loading
+                ? "Loading..."
+                : user
+                  ? `Logged in as: ${user.displayName}`
+                  : "Sign in with Google"}
+            </button>
+            {user && (
+              <button
+                onClick={() => handleCreateRoom(user.displayName || "Player 1")}
+                className={clsx(
+                  "bg-[#67ffb8] w-full text-black font-bold text-[1.25rem] rounded-[20px] shadow-mainCard border-[3px] py-2 px-6 border-black",
+                  "transition ease-in-out hover:-translate-y-1 hover:scale-110 hover:brightness-125 duration-300 select-none",
                 )}
-          >
-            Create room
-          </button>}
-        </div>}
+              >
+                Create room
+              </button>
+            )}
+          </div>
+        )}
         <div className="flex justify-center">
           <Link
             to={"/"}

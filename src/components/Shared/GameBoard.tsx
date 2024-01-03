@@ -10,8 +10,13 @@ import { evaluate } from "../PlayerVsCPU/Evaluate";
 import { getNewStates, isValidMove, makeMove } from "../PlayerVsCPU/Moves";
 import { Player } from "./Player";
 import { Turn } from "./Turn";
+import { useParams } from "react-router-dom";
+import { ref, update } from "firebase/database";
+import { db } from "../../firebase/firebase";
 
-interface GameBoardProps {
+export interface GameBoardProps {
+  isOnline?: boolean;
+  roomId?: string;
   winner: string;
   setWinner: (arg0: string) => void;
   setPlayerTurn: (arg0: any) => void;
@@ -33,7 +38,10 @@ interface GameBoardProps {
   lastGameWinner: string | null;
 }
 
+export const gameInitialState = Array(6).fill(Array(7).fill(null));
+
 export const GameBoard = ({
+  isOnline,
   winner,
   setWinner,
   setPlayerTurn,
@@ -59,6 +67,8 @@ export const GameBoard = ({
   const [counterStutter, setCounterStutter] = useState<boolean>(false);
 
   type BoardState = (string | null)[][];
+  let { id: roomId } = useParams<{ id: string }>();
+
   const checkForWin = (
     gameBoard: (string | null)[][],
     rowIndex: number,
@@ -98,35 +108,21 @@ export const GameBoard = ({
   };
 
   const dropCounter = (columnIndex: number): void => {
-    console.log(columnIndex); // Log the selected column index
-    // Create a deep copy of the gameBoard array
     let newGameBoard = gameBoard.map((row) => [...row]);
-
-    // Initialize a variable to store the row index of the empty cell
     let emptyCellRowIndex = null;
 
-    // Iterate over the newGameBoard array from bottom to top
     for (let i = newGameBoard.length - 1; i >= 0; i--) {
-      // Check if the cell in the selected column is empty
       if (newGameBoard[i][columnIndex] === null) {
-        // If an empty cell is found, store its row index in the variable
         emptyCellRowIndex = i;
-        // Break the loop
         break;
       }
     }
 
-    // In the dropCounter function
     if (emptyCellRowIndex !== null) {
-      // Update the newGameBoard to place the current player's turn in the empty cell
       newGameBoard[emptyCellRowIndex][columnIndex] = playerTurn;
-
-      // Update the gameBoard state with the newGameBoard
       setGameBoard(newGameBoard);
 
-      // Check for win
       if (checkForWin(newGameBoard, emptyCellRowIndex, columnIndex)) {
-        // Update the score of the current player
         if (playerTurn === "PLAYER 1") {
           setPlayer1Score((prevPlayer1Score: number) => prevPlayer1Score + 1);
         } else {
@@ -134,16 +130,22 @@ export const GameBoard = ({
         }
         setWinner(playerTurn);
         setLastGameWinner(playerTurn);
-
-        // End the game and display the winner
-
-        return;
       }
 
-      // Switch the player's turn
       setPlayerTurn((prevPlayerTurn: string) =>
         prevPlayerTurn === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",
       );
+
+      if (isOnline && roomId) {
+        console.log("updating room");
+        const roomRef = ref(db, `rooms/${roomId}`);
+        const updates = {
+          gameBoard: newGameBoard,
+          status: playerTurn === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",
+          winner: playerTurn,
+        };
+        update(roomRef, updates);
+      }
     }
   };
 
@@ -156,6 +158,7 @@ export const GameBoard = ({
     };
 
     window.addEventListener("keydown", handleKeyDown);
+    console.log(isOnline, roomId);
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);

@@ -10,6 +10,7 @@ import { SignIn } from "./components/SignIn/SignIn";
 
 function App() {
   const [difficulty, setDifficulty] = useState<number>(2);
+  const [isOnline, setIsOnline] = useState<boolean>(false);
 
   //on boot, the difficulty is set to the value stored in the local storage
 
@@ -19,7 +20,7 @@ function App() {
       setDifficulty(JSON.parse(difficulty));
     }
   }, []);
-  
+
   return (
     <div className="max-h-screen min-h-fit m-0 p-0 w-screen h-[100svh] flex justify-center items-center flex-1">
       <Routes>
@@ -36,9 +37,18 @@ function App() {
             />
           }
         />
+        <Route path="/pvp/online" element={<SignIn />} />
         <Route
-          path="/pvp/online"
-          element={<SignIn />}
+          path="/pvp/online/rooms/:id"
+          element={
+            <PlayerVsPlayer
+              CPUMode={false}
+              difficulty={difficulty}
+              setDifficulty={setDifficulty}
+              setIsOnline={setIsOnline}
+              isOnline={true}
+            />
+          }
         />
         <Route
           path="/pve"
@@ -56,10 +66,7 @@ function App() {
             <Settings difficulty={difficulty} setDifficulty={setDifficulty} />
           }
         />
-        <Route
-          path={"/sign-in"}
-          element={<SignIn  />}
-        />
+        <Route path={"/sign-in"} element={<SignIn />} />
       </Routes>
     </div>
   );

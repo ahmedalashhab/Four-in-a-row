@@ -18,7 +18,7 @@ export const PVPMenu = () => {
           bounce: 0.25,
         }}
         className="lg:h-fit lg:w-[30rem] relative flex items-center justify-center h-[100svh] w-screen lg:rounded-[2.5rem]
-         bg-[#7945FF] lg:border-[3px] lg:border-black lg:shadow-mainCard lg:px-[2.5rem] lg:py-[3.75rem]"
+      bg-[#7945ff] lg:border-[3px] lg:border-black lg:shadow-mainCard lg:px-[2.5rem] lg:py-[3.75rem]"
       >
         <div className="flex flex-col items-center justify-center">
           <div className="grid-cols-2">
