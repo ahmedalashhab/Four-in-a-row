@@ -7,12 +7,14 @@ interface PlayerVsPlayerProps {
   CPUMode: boolean;
   difficulty: number;
   setDifficulty: (arg0: number) => void;
+  online?: boolean;
 }
 
 export const PlayerVsPlayer = ({
   CPUMode,
   difficulty,
   setDifficulty,
+  online,
 }: PlayerVsPlayerProps) => {
   const [player1Score, setPlayer1Score] = useState<number>(0);
   const [player2Score, setPlayer2Score] = useState<number>(0);
@@ -24,6 +26,8 @@ export const PlayerVsPlayer = ({
   );
   const [open, setOpen] = useState<boolean>(false);
   const [lastGameWinner, setLastGameWinner] = useState<string | null>(null);
+  const [onlineOpponentReady, setOnlineOpponentReady] =
+    useState<boolean>(false);
 
   const playAgain = (): void => {
     setGameBoard(Array(6).fill(Array(7).fill(null)));
@@ -56,6 +60,9 @@ export const PlayerVsPlayer = ({
     <div className="w-screen h-[100svh] flex-1 bg-[#7945FF] justify-center lg:items-center pt-24 lg:pt-0 flex relative">
       <Nav restartGame={restartGame} open={open} setOpen={setOpen} />
       <GameBoard
+        online={online}
+        onlineOpponentReady={onlineOpponentReady}
+        setOnlineOpponentReady={setOnlineOpponentReady}
         winner={winner}
         setWinner={setWinner}
         setGameBoard={setGameBoard}

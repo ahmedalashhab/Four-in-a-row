@@ -7,6 +7,7 @@ import { PVPMenu } from "./components/PlayerVsPlayer/PVPMenu";
 import { Rules } from "./components/Rules/Rules";
 import { Settings } from "./components/Settings/Settings";
 import { SignIn } from "./components/SignIn/SignIn";
+import { JoinRoom } from "./components/PlayerVsPlayer/JoinRoom";
 
 function App() {
   const [difficulty, setDifficulty] = useState<number>(2);
@@ -19,7 +20,7 @@ function App() {
       setDifficulty(JSON.parse(difficulty));
     }
   }, []);
-  
+
   return (
     <div className="max-h-screen min-h-fit m-0 p-0 w-screen h-[100svh] flex justify-center items-center flex-1">
       <Routes>
@@ -33,12 +34,22 @@ function App() {
               CPUMode={false}
               difficulty={difficulty}
               setDifficulty={setDifficulty}
+              online={false}
             />
           }
         />
+        <Route path="/pvp/online" element={<SignIn />} />
+        <Route path="/pvp/online/rooms" element={<JoinRoom />} />
         <Route
-          path="/pvp/online"
-          element={<SignIn />}
+          path="/pvp/online/room/:id"
+          element={
+            <PlayerVsPlayer
+              CPUMode={false}
+              difficulty={difficulty}
+              setDifficulty={setDifficulty}
+              online={true}
+            />
+          }
         />
         <Route
           path="/pve"
@@ -47,6 +58,7 @@ function App() {
               CPUMode={true}
               difficulty={difficulty}
               setDifficulty={setDifficulty}
+              online={false}
             />
           }
         />
@@ -56,10 +68,7 @@ function App() {
             <Settings difficulty={difficulty} setDifficulty={setDifficulty} />
           }
         />
-        <Route
-          path={"/sign-in"}
-          element={<SignIn  />}
-        />
+        <Route path={"/sign-in"} element={<SignIn />} />
       </Routes>
     </div>
   );

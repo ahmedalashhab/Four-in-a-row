@@ -4,6 +4,8 @@ import turn_yellow from "../../assets/images/turn-background-yellow.svg";
 import { isValidMove } from "../PlayerVsCPU/Moves";
 
 interface TurnProps {
+  online?: boolean;
+  onlineOpponentReady?: boolean;
   time: number;
   setTime: (arg0: any) => void;
   playerTurn: string;
@@ -19,6 +21,8 @@ interface TurnProps {
 }
 
 export const Turn = ({
+  online,
+  onlineOpponentReady,
   time,
   setTime,
   playerTurn,
@@ -42,7 +46,9 @@ export const Turn = ({
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      !open && setTime((prevTime: number) => prevTime - 1);
+      !open &&
+        (online ? onlineOpponentReady : true) &&
+        setTime((prevTime: number) => prevTime - 1);
     }, 1000);
 
     // When time is 0, make random move
@@ -94,9 +100,16 @@ export const Turn = ({
             src={playerTurn === "PLAYER 1" ? turn_red : turn_yellow}
             className="lg:w-[13rem] w-[12rem] h-auto mt-8 lg:mt-0"
           />
-          <div className="absolute mt-2 text-white w-full px-[1.5rem] flex flex-col justify-center items-center top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <span className="font-bold text-[16px] mb-[-0.5rem]">
-              {playerTurn}'S TURN
+          <div
+            className={`absolute mt-2 text-white w-full px-[1.5rem] flex flex-col justify-center items-center left-1/2 top-1/2
+              transform -translate-x-1/2 -translate-y-1/2`}
+          >
+            <span
+              className={`font-bold ${
+                online ? "text-[12px] lg:text-[14px]" : "text-[16px]"
+              } mb-[-0.5rem]`}
+            >
+              {online ? "AWAITING OPPONENT" : `${playerTurn}'S TURN`}
             </span>
             <h3 className="text-[56px]">{time}s</h3>
           </div>

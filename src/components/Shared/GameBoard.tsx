@@ -12,6 +12,9 @@ import { Player } from "./Player";
 import { Turn } from "./Turn";
 
 interface GameBoardProps {
+  online?: boolean;
+  onlineOpponentReady: boolean;
+  setOnlineOpponentReady: (arg0: boolean) => void;
   winner: string;
   setWinner: (arg0: string) => void;
   setPlayerTurn: (arg0: any) => void;
@@ -34,6 +37,9 @@ interface GameBoardProps {
 }
 
 export const GameBoard = ({
+  online,
+  onlineOpponentReady,
+  setOnlineOpponentReady,
   winner,
   setWinner,
   setPlayerTurn,
@@ -371,6 +377,8 @@ export const GameBoard = ({
 
   const isPhone = window.innerWidth < 821;
 
+  console.log("online:", online);
+
   return (
     <motion.div
       // slide the page in from the right
@@ -409,6 +417,8 @@ export const GameBoard = ({
           setOpen={setOpen}
           dropCounter={dropCounter}
           gameBoard={gameBoard}
+          online={online}
+          onlineOpponentReady={onlineOpponentReady}
         />
       </div>
       {!isPhone && <Player pNumber={2} score={player2Score} />}

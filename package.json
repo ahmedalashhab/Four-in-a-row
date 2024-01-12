@@ -1,5 +1,5 @@
 {
-  "name": "plain-old-react",
+  "name": "connect-4",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -15,17 +15,21 @@
     "clsx": "^2.1.0",
     "firebase": "^10.7.1",
     "framer-motion": "^10.16.5",
+    "partykit": "^0.0.63",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
     "typescript": "^4.9.5",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "partysocket": "0.0.20"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "dev": "partykit dev",
+    "deploy": "partykit deploy"
   },
   "eslintConfig": {
     "extends": [
@@ -50,6 +54,7 @@
     "eslint-plugin-unused-imports": "^3.0.0",
     "prettier": "3.1.0",
     "react-router-dom": "^6.19.0",
-    "tailwindcss": "^3.3.5"
+    "tailwindcss": "^3.3.5",
+    "partykit": "0.0.66"
   }
 }

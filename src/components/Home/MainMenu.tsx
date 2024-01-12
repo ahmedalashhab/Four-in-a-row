@@ -16,6 +16,11 @@ interface GameLinkButtonProps extends ComponentProps<"button"> {
   children: string;
 }
 
+interface AnimatedMenu {
+  className?: string;
+  children: React.ReactNode;
+}
+
 export const GameLinkButton: FC<GameLinkButtonProps> = ({
   to,
   backgroundColor,
@@ -31,7 +36,7 @@ export const GameLinkButton: FC<GameLinkButtonProps> = ({
         border-[3px] ${backgroundColor} border-black shadow-mainCard px-[1.25rem] py-[0.625rem] text-white
         text-[1.25rem] transition ease-in-out hover:-translate-y-1 hover:scale-110 duration-300 select-none`}
         {...rest}
-        >
+      >
         <h3 className={`text-${color} font-main font-bold select-none`}>
           {children}
         </h3>
@@ -41,22 +46,33 @@ export const GameLinkButton: FC<GameLinkButtonProps> = ({
   </div>
 );
 
+export const AnimatedMenu: React.FC<AnimatedMenu> = ({
+  className,
+  children,
+}) => (
+  <motion.div
+    initial={{ y: -700 }}
+    animate={{ y: 0 }}
+    transition={{
+      type: "spring",
+      stiffness: 300,
+      damping: 30,
+      mass: 1,
+      bounce: 0.25,
+    }}
+    className={
+      "lg:h-fit lg:w-[30rem] flex items-center justify-center h-[100svh] w-screen lg:rounded-[2.5rem] bg-[#7945FF] " +
+      "lg:border-[3px] lg:border-black lg:shadow-mainCard lg:px-[2.5rem] lg:py-[3.75rem]"
+    }
+  >
+    {children}
+  </motion.div>
+);
+
 export const DesktopMainMenu = () => {
   return (
     <div className="w-screen h-[100svh] bg-[#5C2DD5] justify-center items-center flex flex-1 overflow-hidden">
-      <motion.div
-        initial={{ y: -700 }}
-        animate={{ y: 0 }}
-        transition={{
-          type: "spring",
-          stiffness: 300,
-          damping: 30,
-          mass: 1,
-          bounce: 0.25,
-        }}
-        className="lg:h-fit lg:w-[30rem] flex items-center justify-center h-[100svh] w-screen lg:rounded-[2.5rem]
-         bg-[#7945FF] lg:border-[3px] lg:border-black lg:shadow-mainCard lg:px-[2.5rem] lg:py-[3.75rem]"
-      >
+      <AnimatedMenu>
         <div className="flex flex-col items-center justify-center">
           <div className="grid-cols-2">
             <img
@@ -103,7 +119,7 @@ export const DesktopMainMenu = () => {
             </GameLinkButton>
           </div>
         </div>
-      </motion.div>
+      </AnimatedMenu>
     </div>
   );
 };
