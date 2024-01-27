@@ -1,9 +1,6 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { CheckIcon } from "@heroicons/react/24/outline";
-import logo from "../../assets/images/logo.svg";
 import { Link } from "react-router-dom";
-import pvp from "../../assets/images/player-vs-player.svg";
 
 interface PauseProps {
   open: boolean;
