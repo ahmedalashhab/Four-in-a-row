@@ -9,11 +9,16 @@ export default class Server implements Party.Server {
       `Connected:
   id: ${conn.id}
   room: ${this.room.id}
-  url: ${new URL(ctx.request.url).pathname}`
+  url: ${new URL(ctx.request.url).pathname}`,
     );
 
     // let's send a message to the connection
-    conn.send("hello from server");
+    conn.send("hello from the supreme server, you are connected!");
+  }
+
+  onDisconnect(conn: Party.Connection) {
+    // A websocket just disconnected!
+    console.log(`Disconnected: ${conn.id}`);
   }
 
   onMessage(message: string, sender: Party.Connection) {
@@ -23,8 +28,18 @@ export default class Server implements Party.Server {
     this.room.broadcast(
       `${sender.id}: ${message}`,
       // ...except for the connection it came from
-      [sender.id]
+      [sender.id],
     );
+  }
+
+  onJoin(conn: Party.Connection) {
+    // A websocket just joined the room!
+    console.log(`Joined: ${conn.id}`);
+  }
+
+  onLeave(conn: Party.Connection) {
+    // A websocket just left the room!
+    console.log(`Left: ${conn.id}`);
   }
 }
 

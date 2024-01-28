@@ -56,6 +56,17 @@ export const PlayerVsPlayer = ({
     setPlayer2Score(0);
   };
 
+  const getBackgroundColor = (winner: string) => {
+    switch (winner) {
+      case "PLAYER 1":
+        return "bg-[#FD6687]";
+      case "PLAYER 2":
+        return "bg-[#FFCE67]";
+      default:
+        return "bg-[#5C2DD5]";
+    }
+  };
+
   return (
     <div className="w-screen h-[100svh] flex-1 bg-[#7945FF] justify-center lg:items-center pt-24 lg:pt-0 flex relative">
       <Nav restartGame={restartGame} open={open} setOpen={setOpen} />
@@ -85,13 +96,9 @@ export const PlayerVsPlayer = ({
       />
       <Pause open={open} setOpen={setOpen} restartGame={restartGame} />
       <div
-        className={`absolute w-screen lg:h-[16rem] h-[10rem] ${
-          winner === "PLAYER 1"
-            ? "bg-[#FD6687]"
-            : winner === "PLAYER 2"
-              ? "bg-[#FFCE67]"
-              : "bg-[#5C2DD5]"
-        } left-0 bottom-0 rounded-t-[60px]`}
+        className={`absolute w-screen lg:h-[16rem] h-[10rem] ${getBackgroundColor(
+          winner,
+        )} left-0 bottom-0 rounded-t-[60px]`}
       ></div>
     </div>
   );

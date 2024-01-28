@@ -4,6 +4,7 @@ import { useUser } from "../../hooks/useUser";
 import { AnimatedMenu, GameLinkButton } from "../Home/MainMenu";
 import create_room from "../../assets/images/create-room.svg";
 import back from "../../assets/images/back.svg";
+import join_a_room from "../../assets/images/join-a-room.svg";
 
 export const SignIn = () => {
   const { user, loading } = useUser();
@@ -40,13 +41,16 @@ export const SignIn = () => {
                   ? `Logged in as: ${user.displayName}`
                   : "Sign in with Google"}
             </button>
-            <GameLinkButton
-              to={"rooms"}
-              backgroundColor={"bg-[#D8DCFF]"}
-              color={"black"}
-            >
-              Join a room
-            </GameLinkButton>
+            {user && (
+              <GameLinkButton
+                to={"rooms"}
+                backgroundColor={"bg-[#D8DCFF]"}
+                color={"black"}
+                imgSrc={join_a_room}
+              >
+                Join a room
+              </GameLinkButton>
+            )}
             {user && (
               <GameLinkButton
                 to={"room/:id"}

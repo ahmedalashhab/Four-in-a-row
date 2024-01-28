@@ -1,12 +1,12 @@
 import React from "react";
 import { AnimatedMenu, GameLinkButton } from "../Home/MainMenu";
 import pvp from "../../assets/images/player-vs-player.svg";
-import online from "../../assets/images/online.svg";
 import back from "../../assets/images/back.svg";
 
 export const JoinRoom = () => {
   // this is a list of rooms that are available to join
   // the rooms are fetched from partykit
+  // the rooms are displayed as a list of buttons
 
   return (
     <div className="w-screen h-[100svh] bg-[#5C2DD5] justify-center items-center flex flex-1 overflow-hidden">
@@ -19,20 +19,12 @@ export const JoinRoom = () => {
           </div>
           <div className="flex flex-col justify-center items-center mt-[3.75rem]">
             <GameLinkButton
-              to="/pvp/offline"
+              to="/pvp/online/room/:id"
               backgroundColor={"bg-[#FFCE67]"}
               color="black"
               imgSrc={pvp}
             >
-              OFFLINE PVP
-            </GameLinkButton>
-            <GameLinkButton
-              to="/pvp/online"
-              backgroundColor={"bg-[#74A4BC]"}
-              color="black"
-              imgSrc={online}
-            >
-              ONLINE PVP
+              ROOM 1
             </GameLinkButton>
             <GameLinkButton
               to="/"
