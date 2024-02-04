@@ -151,6 +151,7 @@ export const GameBoard = ({
         prevPlayerTurn === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",
       );
     }
+    //TODO: we need to send the columnIndex to the opponent via the partySocket
   };
 
   // listen for keydown events and open modal if escape is pressed

@@ -13,7 +13,7 @@ export default class Server implements Party.Server {
     );
 
     // let's send a message to the connection
-    conn.send("hello from the supreme server, you are connected!");
+    conn.send("hello from the supreme server, you are a connected!");
   }
 
   onDisconnect(conn: Party.Connection) {

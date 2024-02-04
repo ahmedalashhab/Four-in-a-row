@@ -36,5 +36,5 @@ conn.addEventListener("open", () => {
   clearInterval(pingInterval);
   pingInterval = setInterval(() => {
     conn.send("ping");
-  }, 1000);
+  }, 5000);
 });

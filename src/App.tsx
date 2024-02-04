@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import "./App.css";
 import { Home } from "./components/Home/Home";
+import { JoinRoom } from "./components/PlayerVsPlayer/JoinRoom";
 import { PlayerVsPlayer } from "./components/PlayerVsPlayer/Player-Vs-Player";
 import { PVPMenu } from "./components/PlayerVsPlayer/PVPMenu";
 import { Rules } from "./components/Rules/Rules";
 import { Settings } from "./components/Settings/Settings";
 import { SignIn } from "./components/SignIn/SignIn";
-import { JoinRoom } from "./components/PlayerVsPlayer/JoinRoom";
 
 function App() {
   const [difficulty, setDifficulty] = useState<number>(2);

@@ -7,7 +7,8 @@
     "deploy": "partykit deploy"
   },
   "dependencies": {
-    "partysocket": "0.0.20"
+    "partysocket": "0.0.20",
+    "random-words": "^2.0.1"
   },
   "devDependencies": {
     "partykit": "0.0.66",
