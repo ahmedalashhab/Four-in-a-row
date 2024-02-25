@@ -10,6 +10,8 @@ import { evaluate } from "../PlayerVsCPU/Evaluate";
 import { getNewStates, isValidMove, makeMove } from "../PlayerVsCPU/Moves";
 import { Player } from "./Player";
 import { Turn } from "./Turn";
+import PartySocket from "partysocket";
+import { addresses } from "./addresses";
 
 interface GameBoardProps {
   online?: boolean;
@@ -65,6 +67,23 @@ export const GameBoard = ({
   const [counterStutter, setCounterStutter] = useState<boolean>(false);
 
   type BoardState = (string | null)[][];
+
+  const conn = new PartySocket({
+    host: addresses.online, // or addresses.local for local development
+    room: "my-new-room",
+  });
+
+  useEffect(() => {
+    conn.addEventListener("message", (e) => {
+      const newGameBoard = JSON.parse(e.data);
+      setGameBoard(newGameBoard);
+    });
+
+    return () => {
+      conn.close();
+    };
+  }, []);
+
   const checkForWin = (
     gameBoard: (string | null)[][],
     rowIndex: number,
@@ -150,6 +169,7 @@ export const GameBoard = ({
       setPlayerTurn((prevPlayerTurn: string) =>
         prevPlayerTurn === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",
       );
+      conn.send(JSON.stringify({ columnIndex }));
     }
     //TODO: we need to send the columnIndex to the opponent via the partySocket
   };

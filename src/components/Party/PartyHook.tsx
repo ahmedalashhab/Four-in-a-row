@@ -1,6 +1,7 @@
 import { usePartySocket } from "partysocket/react";
 import { generate } from "random-words";
 import { useCallback, useState } from "react";
+import { addresses } from "../Shared/addresses";
 
 export const useRemoteGameboard = (roomId: string) => {
   if (!roomId) {
@@ -11,12 +12,12 @@ export const useRemoteGameboard = (roomId: string) => {
     console.log("GENERATED NEW ROOM ID", roomId);
   }
 
-  const [opponentTurn, setOpponentTurn] = useState(null);
+  const [playerTurn, setPlayerTurn] = useState(null);
   const [connected, setIsConnected] = useState(false);
   // State to manage the WebSocket connection
   const socket = usePartySocket({
     // usePartySocket takes the same arguments as PartySocket.
-    host: "connect-4-party.ahmedalashhab.partykit.dev", // or localhost:1999 in dev
+    host: addresses.local, // or localhost:1999 in dev
     room: roomId,
     // in addition, you can provide socket lifecycle event handlers
     // (equivalent to using ws.addEventListener in an effect hook)
@@ -29,7 +30,7 @@ export const useRemoteGameboard = (roomId: string) => {
       try {
         const j = JSON.parse(e.data);
         if (j.event !== "drop_counter") return;
-        return setOpponentTurn(j);
+        return setPlayerTurn(j);
       } catch (error) {
         console.error(error);
       }
@@ -61,6 +62,6 @@ export const useRemoteGameboard = (roomId: string) => {
     [socket],
   );
 
-  // Return the sendCounterEvent function and opponentTurn state
-  return [sendCounterEvent, opponentTurn, roomId];
+  // Return the sendCounterEvent function and playerTurn state
+  return [sendCounterEvent, playerTurn, roomId];
 };

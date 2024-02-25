@@ -7,7 +7,9 @@ interface PlayerVsPlayerProps {
   CPUMode: boolean;
   difficulty: number;
   setDifficulty: (arg0: number) => void;
-  online?: boolean;
+  online: boolean;
+  roomId: string | null;
+  setRoomId: (arg0: string | null) => void;
 }
 
 export const PlayerVsPlayer = ({
@@ -15,6 +17,8 @@ export const PlayerVsPlayer = ({
   difficulty,
   setDifficulty,
   online,
+  roomId,
+  setRoomId,
 }: PlayerVsPlayerProps) => {
   const [player1Score, setPlayer1Score] = useState<number>(0);
   const [player2Score, setPlayer2Score] = useState<number>(0);
@@ -94,7 +98,13 @@ export const PlayerVsPlayer = ({
         setLastGameWinner={setLastGameWinner}
         lastGameWinner={lastGameWinner}
       />
-      <Pause open={open} setOpen={setOpen} restartGame={restartGame} />
+      <Pause
+        open={open}
+        setOpen={setOpen}
+        restartGame={restartGame}
+        online={online}
+        setRoomId={setRoomId}
+      />
       <div
         className={`absolute w-screen lg:h-[16rem] h-[10rem] ${getBackgroundColor(
           winner,

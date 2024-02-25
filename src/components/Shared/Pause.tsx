@@ -6,12 +6,24 @@ interface PauseProps {
   open: boolean;
   setOpen: (arg0: boolean) => void;
   restartGame: () => void;
+  online: boolean;
+  setRoomId: (arg0: string | null) => void;
 }
 
-export default function Pause({ open, setOpen, restartGame }: PauseProps) {
+export default function Pause({
+  open,
+  setOpen,
+  restartGame,
+  online,
+  setRoomId,
+}: PauseProps) {
   const restartButton = () => {
     restartGame();
     setOpen(false);
+  };
+
+  const handleQuit = () => {
+    setRoomId(null);
   };
 
   return (
@@ -43,10 +55,16 @@ export default function Pause({ open, setOpen, restartGame }: PauseProps) {
               <Dialog.Panel className="relative flex items-center justify-center transform lg:h-[27rem] lg:w-[30rem] rounded-lg text-left transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6">
                 <div className="lg:h-[27rem] lg:w-[30rem] w-[21rem] flex items-center justify-center rounded-[2.5rem] bg-[#7945FF] border-[3px] border-black shadow-mainCard lg:px-[2.5rem] py-[2.5rem] lg:py-[3.75rem]">
                   <div className="flex flex-col items-center justify-center">
-                    <h1 className="font-bold text-[56px] justify-center text-white mb-6 lg:mb-0">
+                    <h1
+                      className={`font-bold text-[56px] justify-center text-white mb-6 ${
+                        online ? "lg:mb-12" : "lg:mb-0"
+                      }`}
+                    >
                       PAUSE
                     </h1>
-                    <div className="flex flex-col items-center justify-center">
+                    <div
+                      className={`flex flex-col items-center justify-center`}
+                    >
                       <div className="flex flex-row items-center">
                         <button
                           onClick={() => setOpen(false)}
@@ -59,22 +77,29 @@ export default function Pause({ open, setOpen, restartGame }: PauseProps) {
                           </h3>
                         </button>
                       </div>
-                      <div className="flex items-center mt-[1.25rem]">
-                        <button
-                          onClick={restartButton}
-                          className="lg:w-[25rem] lg:h-[4.5rem] w-[18.4rem] flex justify-center items-center rounded-[20px]
+                      <div
+                        className={`flex items-center ${
+                          online ? "mt-0" : "mt-[1.25rem]"
+                        }`}
+                      >
+                        {!online && (
+                          <button
+                            onClick={restartButton}
+                            className="lg:w-[25rem] lg:h-[4.5rem] w-[18.4rem] flex justify-center items-center rounded-[20px]
                 bg-[#FFF] border-[3px] border-black shadow-mainCard px-[1.25rem] py-[0.625rem] text-white text-[1.25rem] transition ease-in-out hover:-translate-y-1 hover:scale-110 duration-300"
-                        >
-                          <h3 className="font-bold text-black select-none font-main">
-                            RESTART
-                          </h3>
-                        </button>
+                          >
+                            <h3 className="font-bold text-black select-none font-main">
+                              RESTART
+                            </h3>
+                          </button>
+                        )}
                       </div>
                       <div className="flex items-center mt-[1.25rem]">
                         <Link to={"/"}>
                           <button
                             className="lg:w-[25rem] lg:h-[4.5rem] w-[18.4rem] bg-[#FD6687] flex justify-center items-center rounded-[20px]
                  border-[3px] border-black shadow-mainCard px-[1.25rem] py-[0.625rem] text-white text-[1.25rem] transition ease-in-out hover:-translate-y-1 hover:scale-110 duration-300"
+                            onClick={handleQuit}
                           >
                             <h3 className="font-bold text-white select-none font-main">
                               QUIT GAME

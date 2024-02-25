@@ -11,6 +11,7 @@ import { SignIn } from "./components/SignIn/SignIn";
 
 function App() {
   const [difficulty, setDifficulty] = useState<number>(2);
+  const [roomId, setRoomId] = useState<string | null>(null);
 
   //on boot, the difficulty is set to the value stored in the local storage
 
@@ -35,10 +36,15 @@ function App() {
               difficulty={difficulty}
               setDifficulty={setDifficulty}
               online={false}
+              roomId={roomId}
+              setRoomId={setRoomId}
             />
           }
         />
-        <Route path="/pvp/online" element={<SignIn />} />
+        <Route
+          path="/pvp/online"
+          element={<SignIn setRoomId={setRoomId} roomId={roomId} />}
+        />
         <Route path="/pvp/online/rooms" element={<JoinRoom />} />
         <Route
           path="/pvp/online/room/:id"
@@ -48,6 +54,8 @@ function App() {
               difficulty={difficulty}
               setDifficulty={setDifficulty}
               online={true}
+              roomId={roomId}
+              setRoomId={setRoomId}
             />
           }
         />
@@ -59,6 +67,8 @@ function App() {
               difficulty={difficulty}
               setDifficulty={setDifficulty}
               online={false}
+              roomId={roomId}
+              setRoomId={setRoomId}
             />
           }
         />
@@ -68,7 +78,10 @@ function App() {
             <Settings difficulty={difficulty} setDifficulty={setDifficulty} />
           }
         />
-        <Route path={"/sign-in"} element={<SignIn />} />
+        <Route
+          path={"/sign-in"}
+          element={<SignIn setRoomId={setRoomId} roomId={roomId} />}
+        />
       </Routes>
     </div>
   );

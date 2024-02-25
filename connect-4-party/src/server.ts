@@ -1,46 +1,38 @@
 import type * as Party from "partykit/server";
+import { generate } from "random-words";
 
 export default class Server implements Party.Server {
-  constructor(readonly room: Party.Room) {}
+  connections: Record<string, number> | undefined;
+  rooms: { [id: string]: Party.Room } = {};
+
+  constructor(readonly room: Party.Room) {
+    this.rooms[room.id] = room;
+  }
 
   onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
+    //In the onConnect method, when a new connection is established,
+    //add the room to the rooms object.
+    this.rooms[this.room.id] = this.room;
     // A websocket just connected!
     console.log(
       `Connected:
   id: ${conn.id}
-  room: ${this.room.id}
+  room: "new-party-room"
   url: ${new URL(ctx.request.url).pathname}`,
     );
 
     // let's send a message to the connection
-    conn.send("hello from the supreme server, you are a connected!");
-  }
-
-  onDisconnect(conn: Party.Connection) {
-    // A websocket just disconnected!
-    console.log(`Disconnected: ${conn.id}`);
-  }
-
-  onMessage(message: string, sender: Party.Connection) {
-    // let's log the message
-    console.log(`connection ${sender.id} sent message: ${message}`);
-    // as well as broadcast it to all the other connections in the room...
-    this.room.broadcast(
-      `${sender.id}: ${message}`,
-      // ...except for the connection it came from
-      [sender.id],
+    conn.send(
+      `hello from the supreme server, you are a connected to room ${
+        this.room.id
+      }
+      and also, there are ${this.room.getConnections()} connections in this room`,
     );
-  }
-
-  onJoin(conn: Party.Connection) {
-    // A websocket just joined the room!
-    console.log(`Joined: ${conn.id}`);
-  }
-
-  onLeave(conn: Party.Connection) {
-    // A websocket just left the room!
-    console.log(`Left: ${conn.id}`);
   }
 }
 
 Server satisfies Party.Worker;
+
+//TODO: handle logic to send a message to the server from the client to create a room and add it into the rooms object.
+//TODO: then create a function to retrieve all the rooms in the rooms object and send it to the client where it will be displayed in a list of button.
+//TODO: Each button will have a click event listener that will send a message to the server to join the room. The user will then be redirected to the game page.
