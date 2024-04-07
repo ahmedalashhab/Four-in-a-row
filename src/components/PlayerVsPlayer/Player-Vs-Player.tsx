@@ -97,6 +97,7 @@ export const PlayerVsPlayer = ({
         difficulty={difficulty}
         setLastGameWinner={setLastGameWinner}
         lastGameWinner={lastGameWinner}
+        roomId={roomId}
       />
       <Pause
         open={open}

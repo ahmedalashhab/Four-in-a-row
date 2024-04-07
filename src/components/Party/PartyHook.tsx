@@ -3,7 +3,7 @@ import { generate } from "random-words";
 import { useCallback, useState } from "react";
 import { addresses } from "../Shared/addresses";
 
-export const useRemoteGameboard = (roomId: string) => {
+export const useRemoteGameboard = (roomId: string | null) => {
   if (!roomId) {
     //generate random room id
     roomId = (
@@ -53,7 +53,7 @@ export const useRemoteGameboard = (roomId: string) => {
         socket.send(
           JSON.stringify({
             event: "drop_counter",
-            player: "PLAYER 1",
+            player: player,
             columnIndex,
           }),
         );
@@ -63,5 +63,5 @@ export const useRemoteGameboard = (roomId: string) => {
   );
 
   // Return the sendCounterEvent function and playerTurn state
-  return [sendCounterEvent, playerTurn, roomId];
+  return [sendCounterEvent, playerTurn, roomId, socket];
 };

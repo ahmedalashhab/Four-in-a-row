@@ -10,8 +10,7 @@ import { evaluate } from "../PlayerVsCPU/Evaluate";
 import { getNewStates, isValidMove, makeMove } from "../PlayerVsCPU/Moves";
 import { Player } from "./Player";
 import { Turn } from "./Turn";
-import PartySocket from "partysocket";
-import { addresses } from "./addresses";
+import { useRemoteGameboard } from "../Party/PartyHook";
 
 interface GameBoardProps {
   online?: boolean;
@@ -36,6 +35,7 @@ interface GameBoardProps {
   difficulty: number;
   setLastGameWinner: (arg0: string) => void;
   lastGameWinner: string | null;
+  roomId: string | null;
 }
 
 export const GameBoard = ({
@@ -44,8 +44,8 @@ export const GameBoard = ({
   setOnlineOpponentReady,
   winner,
   setWinner,
-  setPlayerTurn,
   playerTurn,
+  setPlayerTurn,
   setTime,
   time,
   setGameBoard,
@@ -61,6 +61,7 @@ export const GameBoard = ({
   difficulty,
   setLastGameWinner,
   lastGameWinner,
+  roomId,
 }: GameBoardProps) => {
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
   const [counterZIndex, setCounterZIndex] = useState<number>(10);
@@ -68,21 +69,7 @@ export const GameBoard = ({
 
   type BoardState = (string | null)[][];
 
-  const conn = new PartySocket({
-    host: addresses.online, // or addresses.local for local development
-    room: "my-new-room",
-  });
-
-  useEffect(() => {
-    conn.addEventListener("message", (e) => {
-      const newGameBoard = JSON.parse(e.data);
-      setGameBoard(newGameBoard);
-    });
-
-    return () => {
-      conn.close();
-    };
-  }, []);
+  const [socket] = useRemoteGameboard(roomId);
 
   const checkForWin = (
     gameBoard: (string | null)[][],
@@ -169,7 +156,7 @@ export const GameBoard = ({
       setPlayerTurn((prevPlayerTurn: string) =>
         prevPlayerTurn === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",
       );
-      conn.send(JSON.stringify({ columnIndex }));
+      socket?.send(JSON.stringify({ columnIndex }));
     }
     //TODO: we need to send the columnIndex to the opponent via the partySocket
   };

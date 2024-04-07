@@ -28,7 +28,7 @@ export const SignIn = ({ roomId, setRoomId }: signInProps) => {
   const createRoom = () => {
     // Assuming you have a connection to the server
     // Send a message to the server with the roomId
-    conn.send("create-room", roomId);
+    conn.send("create-room");
   };
 
   const { user, loading } = useUser();
