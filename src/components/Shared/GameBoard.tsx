@@ -6,14 +6,15 @@ import counter_red from "../../assets/images/counter-red-large.svg";
 import counter_yellow from "../../assets/images/counter-yellow-large.svg";
 import marker_red from "../../assets/images/marker-red.svg";
 import marker_yellow from "../../assets/images/marker-yellow.svg";
+import { useRemoteGameboard } from "../Party/PartyHook";
 import { evaluate } from "../PlayerVsCPU/Evaluate";
 import { getNewStates, isValidMove, makeMove } from "../PlayerVsCPU/Moves";
 import { Player } from "./Player";
 import { Turn } from "./Turn";
-import { useRemoteGameboard } from "../Party/PartyHook";
+import PartySocket from "partysocket";
 
 interface GameBoardProps {
-  online?: boolean;
+  online: boolean;
   onlineOpponentReady: boolean;
   setOnlineOpponentReady: (arg0: boolean) => void;
   winner: string;
@@ -36,6 +37,7 @@ interface GameBoardProps {
   setLastGameWinner: (arg0: string) => void;
   lastGameWinner: string | null;
   roomId: string | null;
+  setRoomId: (arg0: string | null) => void;
 }
 
 export const GameBoard = ({
@@ -62,6 +64,7 @@ export const GameBoard = ({
   setLastGameWinner,
   lastGameWinner,
   roomId,
+  setRoomId,
 }: GameBoardProps) => {
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
   const [counterZIndex, setCounterZIndex] = useState<number>(10);
@@ -69,7 +72,12 @@ export const GameBoard = ({
 
   type BoardState = (string | null)[][];
 
-  const [socket] = useRemoteGameboard(roomId);
+  const [, , , socket] = useRemoteGameboard(roomId, setRoomId, online) as [
+    any,
+    any,
+    any,
+    PartySocket,
+  ];
 
   const checkForWin = (
     gameBoard: (string | null)[][],
@@ -110,7 +118,6 @@ export const GameBoard = ({
   };
 
   const dropCounter = (columnIndex: number): void => {
-    console.log(columnIndex); // Log the selected column index
     // Create a deep copy of the gameBoard array
     let newGameBoard = gameBoard.map((row) => [...row]);
 
@@ -151,12 +158,11 @@ export const GameBoard = ({
 
         return;
       }
-
       // Switch the player's turn
       setPlayerTurn((prevPlayerTurn: string) =>
         prevPlayerTurn === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",
       );
-      socket?.send(JSON.stringify({ columnIndex }));
+      online && socket?.send(JSON.stringify({ columnIndex }));
     }
     //TODO: we need to send the columnIndex to the opponent via the partySocket
   };

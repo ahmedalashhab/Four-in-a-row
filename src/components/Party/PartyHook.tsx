@@ -3,13 +3,17 @@ import { generate } from "random-words";
 import { useCallback, useState } from "react";
 import { addresses } from "../Shared/addresses";
 
-export const useRemoteGameboard = (roomId: string | null) => {
-  if (!roomId) {
+export const useRemoteGameboard = (
+  roomId: string | null,
+  setRoomId: (arg0: string | null) => void,
+  online: boolean,
+) => {
+  if (!roomId && online) {
     //generate random room id
     roomId = (
       generate({ exactly: 3, minLength: 4, maxLength: 4 }) as string[]
     ).join("-");
-    console.log("GENERATED NEW ROOM ID", roomId);
+    setRoomId(roomId);
   }
 
   const [playerTurn, setPlayerTurn] = useState(null);
@@ -18,7 +22,7 @@ export const useRemoteGameboard = (roomId: string | null) => {
   const socket = usePartySocket({
     // usePartySocket takes the same arguments as PartySocket.
     host: addresses.local, // or localhost:1999 in dev
-    room: roomId,
+    room: roomId || "undefined",
     // in addition, you can provide socket lifecycle event handlers
     // (equivalent to using ws.addEventListener in an effect hook)
     onOpen() {
@@ -29,10 +33,11 @@ export const useRemoteGameboard = (roomId: string | null) => {
     onMessage(e) {
       try {
         const j = JSON.parse(e.data);
+        console.log(j);
         if (j.event !== "drop_counter") return;
         return setPlayerTurn(j);
       } catch (error) {
-        console.error(error);
+        console.error("Error:" + error);
       }
     },
     onClose() {

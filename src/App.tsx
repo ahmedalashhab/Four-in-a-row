@@ -8,6 +8,7 @@ import { PVPMenu } from "./components/PlayerVsPlayer/PVPMenu";
 import { Rules } from "./components/Rules/Rules";
 import { Settings } from "./components/Settings/Settings";
 import { SignIn } from "./components/SignIn/SignIn";
+import { PreGameRoom } from "./components/PlayerVsPlayer/PreGameRoom";
 
 function App() {
   const [difficulty, setDifficulty] = useState<number>(2);
@@ -46,6 +47,10 @@ function App() {
           element={<SignIn setRoomId={setRoomId} roomId={roomId} />}
         />
         <Route path="/pvp/online/rooms" element={<JoinRoom />} />
+        <Route
+          path="/pvp/online/room"
+          element={<PreGameRoom roomId={roomId} />}
+        />
         <Route
           path="/pvp/online/room/:id"
           element={

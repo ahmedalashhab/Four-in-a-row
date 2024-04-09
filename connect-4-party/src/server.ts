@@ -13,20 +13,25 @@ export default class Server implements Party.Server {
     //In the onConnect method, when a new connection is established,
     //add the room to the rooms object.
     this.rooms[this.room.id] = this.room;
+    // Fetch the total number of connections, it's an async function
+    const totalConnections = this.room.getConnections();
+
     // A websocket just connected!
     console.log(
       `Connected:
   id: ${conn.id}
-  room: "new-party-room"
-  url: ${new URL(ctx.request.url).pathname}`,
+  room: ${this.room.id}
+  Connections: ${this.room.getConnections()}
+  url: ${new URL(ctx.request.url).pathname}
+  server: 🤣🤣🤣🤣🤣,`,
     );
 
     // let's send a message to the connection
     conn.send(
-      `hello from the supreme server, you are a connected to room ${
-        this.room.id
-      }
-      and also, there are ${this.room.getConnections()} connections in this room`,
+      JSON.stringify({
+        event: "rooms",
+        rooms: this.rooms,
+      }),
     );
   }
 }

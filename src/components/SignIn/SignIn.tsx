@@ -1,13 +1,11 @@
 import { clsx } from "clsx";
+import back from "../../assets/images/back.svg";
+import create_room from "../../assets/images/create-room.svg";
+import join_a_room from "../../assets/images/join-a-room.svg";
 import { SignInWithGoogle } from "../../firebase/Firebase";
 import { useUser } from "../../hooks/useUser";
 import { AnimatedMenu, GameLinkButton } from "../Home/MainMenu";
-import create_room from "../../assets/images/create-room.svg";
-import back from "../../assets/images/back.svg";
-import join_a_room from "../../assets/images/join-a-room.svg";
 import { generate } from "random-words";
-import { useEffect } from "react";
-import { conn } from "../../../connect-4-party/src/client";
 
 interface signInProps {
   roomId: string | null;
@@ -15,21 +13,19 @@ interface signInProps {
 }
 
 export const SignIn = ({ roomId, setRoomId }: signInProps) => {
-  useEffect(() => {
-    if (!roomId) {
-      const roomId = (
-        generate({ exactly: 3, minLength: 4, maxLength: 4 }) as string[]
-      ).join("-");
-      console.log("GENERATED NEW ROOM ID", roomId);
-      setRoomId(roomId);
-    }
-  }, []);
+  // const createRoom = () => {
+  //   // Assuming you have a connection to the server
+  //   // Send a message to the server with the roomId
+  //   socket.send("create-room");
+  // };
 
-  const createRoom = () => {
-    // Assuming you have a connection to the server
-    // Send a message to the server with the roomId
-    conn.send("create-room");
-  };
+  if (!roomId) {
+    //generate random room id
+    roomId = (
+      generate({ exactly: 3, minLength: 4, maxLength: 4 }) as string[]
+    ).join("-");
+    setRoomId(roomId);
+  }
 
   const { user, loading } = useUser();
 
@@ -77,7 +73,7 @@ export const SignIn = ({ roomId, setRoomId }: signInProps) => {
             )}
             {user && (
               <GameLinkButton
-                to={`room/${roomId}`}
+                to={`/pvp/online/room`}
                 backgroundColor={"bg-[#AEADF0]"}
                 color={"black"}
                 imgSrc={create_room}
