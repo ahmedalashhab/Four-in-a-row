@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import PartySocket from "partysocket";
 import React, { useEffect, useState } from "react";
 import board_black from "../../assets/images/board-layer-black-large.svg";
 import board_white from "../../assets/images/board-layer-white-large.svg";
@@ -11,33 +12,36 @@ import { evaluate } from "../PlayerVsCPU/Evaluate";
 import { getNewStates, isValidMove, makeMove } from "../PlayerVsCPU/Moves";
 import { Player } from "./Player";
 import { Turn } from "./Turn";
-import PartySocket from "partysocket";
 
 interface GameBoardProps {
   online: boolean;
   onlineOpponentReady: boolean;
-  setOnlineOpponentReady: (arg0: boolean) => void;
+  setOnlineOpponentReady: (ready: boolean) => void;
   winner: string;
-  setWinner: (arg0: string) => void;
-  setPlayerTurn: (arg0: any) => void;
-  playerTurn: string;
-  setTime: (arg0: number) => void;
-  time: number;
-  setGameBoard: (arg0: (string | null)[][]) => void;
+  setWinner: (winner: string) => void;
+  setGameBoard: (board: (string | null)[][]) => void;
   gameBoard: (string | null)[][];
-  player1Score: number;
-  setPlayer1Score: (arg0: any) => void;
   player2Score: number;
-  setPlayer2Score: (arg0: any) => void;
+  setPlayer2Score: React.Dispatch<React.SetStateAction<number>>;
+  player1Score: number;
+  setPlayer1Score: React.Dispatch<React.SetStateAction<number>>;
+  time: number;
+  setTime: (time: number) => void;
+  playerTurn: string;
+  setPlayerTurn: React.Dispatch<React.SetStateAction<string>>;
   resetGame: () => void;
   open: boolean;
-  setOpen: (arg0: boolean) => void;
+  setOpen: (open: boolean) => void;
   cpuMode: boolean;
   difficulty: number;
-  setLastGameWinner: (arg0: string) => void;
+  setLastGameWinner: (winner: string | null) => void;
   lastGameWinner: string | null;
   roomId: string | null;
-  setRoomId: (arg0: string | null) => void;
+  setRoomId: (roomId: string | null) => void;
+  onMove?: (row: number, col: number, currentPlayer: string) => void;
+  isHost?: boolean;
+  canMove?: boolean;
+  playerNumber?: string | null;
 }
 
 export const GameBoard = ({
@@ -46,16 +50,16 @@ export const GameBoard = ({
   setOnlineOpponentReady,
   winner,
   setWinner,
-  playerTurn,
-  setPlayerTurn,
-  setTime,
-  time,
   setGameBoard,
   gameBoard,
-  player1Score,
-  setPlayer1Score,
   player2Score,
   setPlayer2Score,
+  player1Score,
+  setPlayer1Score,
+  time,
+  setTime,
+  playerTurn,
+  setPlayerTurn,
   resetGame,
   open,
   setOpen,
@@ -65,6 +69,10 @@ export const GameBoard = ({
   lastGameWinner,
   roomId,
   setRoomId,
+  onMove,
+  isHost,
+  canMove,
+  playerNumber,
 }: GameBoardProps) => {
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
   const [counterZIndex, setCounterZIndex] = useState<number>(10);
@@ -118,6 +126,12 @@ export const GameBoard = ({
   };
 
   const dropCounter = (columnIndex: number): void => {
+    // Don't allow moves if it's not your turn in online mode
+    if (online && !canMove) {
+      console.log("Not your turn!");
+      return;
+    }
+
     // Create a deep copy of the gameBoard array
     let newGameBoard = gameBoard.map((row) => [...row]);
 
@@ -137,34 +151,34 @@ export const GameBoard = ({
 
     // In the dropCounter function
     if (emptyCellRowIndex !== null) {
-      // Update the newGameBoard to place the current player's turn in the empty cell
-      newGameBoard[emptyCellRowIndex][columnIndex] = playerTurn;
+      if (online && onMove) {
+        onMove(emptyCellRowIndex, columnIndex, playerTurn);
+      } else {
+        // Update the newGameBoard to place the current player's turn in the empty cell
+        newGameBoard[emptyCellRowIndex][columnIndex] = playerTurn;
 
-      // Update the gameBoard state with the newGameBoard
-      setGameBoard(newGameBoard);
+        // Update the gameBoard state with the newGameBoard
+        setGameBoard(newGameBoard);
 
-      // Check for win
-      if (checkForWin(newGameBoard, emptyCellRowIndex, columnIndex)) {
-        // Update the score of the current player
-        if (playerTurn === "PLAYER 1") {
-          setPlayer1Score((prevPlayer1Score: number) => prevPlayer1Score + 1);
-        } else {
-          setPlayer2Score((prevPlayer2Score: number) => prevPlayer2Score + 1);
+        // Check for win
+        if (checkForWin(newGameBoard, emptyCellRowIndex, columnIndex)) {
+          // Update the score of the current player
+          if (playerTurn === "PLAYER 1") {
+            setPlayer1Score((prevPlayer1Score: number) => prevPlayer1Score + 1);
+          } else {
+            setPlayer2Score((prevPlayer2Score: number) => prevPlayer2Score + 1);
+          }
+          setWinner(playerTurn);
+          setLastGameWinner(playerTurn);
+
+          return;
         }
-        setWinner(playerTurn);
-        setLastGameWinner(playerTurn);
-
-        // End the game and display the winner
-
-        return;
+        // Switch the player's turn
+        setPlayerTurn((prevPlayerTurn: string) =>
+          prevPlayerTurn === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",
+        );
       }
-      // Switch the player's turn
-      setPlayerTurn((prevPlayerTurn: string) =>
-        prevPlayerTurn === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",
-      );
-      online && socket?.send(JSON.stringify({ columnIndex }));
     }
-    //TODO: we need to send the columnIndex to the opponent via the partySocket
   };
 
   // listen for keydown events and open modal if escape is pressed
@@ -251,7 +265,11 @@ export const GameBoard = ({
               onMouseEnter={() => !winner && gameBoardWhiteHover(j)}
               onMouseLeave={() => !winner && gameBoardWhiteHover(null)}
               onClick={() => {
-                if (!winner && (!cpuMode || playerTurn === "PLAYER 1")) {
+                if (
+                  !winner &&
+                  (!cpuMode || playerTurn === "PLAYER 1") &&
+                  (!online || canMove)
+                ) {
                   dropCounter(j);
                 }
               }}
@@ -392,6 +410,97 @@ export const GameBoard = ({
   const isPhone = window.innerWidth < 821;
 
   console.log("online:", online);
+
+  const handleMove = (row: number, col: number) => {
+    if (online && onMove) {
+      onMove(row, col, playerTurn);
+    } else {
+      // Existing move logic for local play
+      const newBoard = gameBoard.map((row) => [...row]);
+      newBoard[row][col] = playerTurn;
+      setGameBoard(newBoard);
+
+      // Check for win condition
+      if (checkWin(newBoard, row, col)) {
+        setWinner(playerTurn);
+        setLastGameWinner(playerTurn);
+        if (playerTurn === "PLAYER 1") {
+          setPlayer1Score((prev) => prev + 1);
+        } else {
+          setPlayer2Score((prev) => prev + 1);
+        }
+      } else {
+        // Switch turns
+        setPlayerTurn((prev) =>
+          prev === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",
+        );
+      }
+    }
+  };
+
+  // Function to check for win condition
+  const checkWin = (
+    board: (string | null)[][],
+    row: number,
+    col: number,
+  ): boolean => {
+    const currentPlayer = board[row][col];
+    if (!currentPlayer) return false;
+
+    // Check horizontal
+    let count = 0;
+    for (let c = 0; c < 7; c++) {
+      if (board[row][c] === currentPlayer) {
+        count++;
+        if (count === 4) return true;
+      } else {
+        count = 0;
+      }
+    }
+
+    // Check vertical
+    count = 0;
+    for (let r = 0; r < 6; r++) {
+      if (board[r][col] === currentPlayer) {
+        count++;
+        if (count === 4) return true;
+      } else {
+        count = 0;
+      }
+    }
+
+    // Check diagonal (top-left to bottom-right)
+    let r = row - Math.min(row, col);
+    let c = col - Math.min(row, col);
+    count = 0;
+    while (r < 6 && c < 7) {
+      if (board[r][c] === currentPlayer) {
+        count++;
+        if (count === 4) return true;
+      } else {
+        count = 0;
+      }
+      r++;
+      c++;
+    }
+
+    // Check diagonal (top-right to bottom-left)
+    r = row - Math.min(row, 6 - col);
+    c = col + Math.min(row, 6 - col);
+    count = 0;
+    while (r < 6 && c >= 0) {
+      if (board[r][c] === currentPlayer) {
+        count++;
+        if (count === 4) return true;
+      } else {
+        count = 0;
+      }
+      r++;
+      c--;
+    }
+
+    return false;
+  };
 
   return (
     <motion.div

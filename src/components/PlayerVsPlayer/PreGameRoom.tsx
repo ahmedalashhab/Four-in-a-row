@@ -1,13 +1,39 @@
-import React from "react";
-import { AnimatedMenu, GameLinkButton } from "../Home/MainMenu";
+import { useEffect } from "react";
 import back from "../../assets/images/back.svg";
 import play from "../../assets/images/play.svg";
+import { usePartyServer } from "../../hooks/usePartyServer";
+import { AnimatedMenu, GameLinkButton } from "../Home/MainMenu";
 
 interface PreGameRoomProps {
   roomId: string | null;
+  setRoomId: (roomId: string | null) => void;
 }
 
-export const PreGameRoom = ({ roomId }: PreGameRoomProps) => {
+export const PreGameRoom = ({ roomId, setRoomId }: PreGameRoomProps) => {
+  const { createRoom } = usePartyServer({
+    roomId,
+    initialGameState: {
+      board: Array(6).fill(Array(7).fill(null)),
+      playerTurn: "PLAYER 1",
+      player1Score: 0,
+      player2Score: 0,
+      winner: "",
+      time: 30,
+      lastGameWinner: null,
+    },
+  });
+
+  useEffect(() => {
+    const initializeRoom = async () => {
+      if (!roomId) {
+        const newRoomId = await createRoom();
+        setRoomId(newRoomId);
+      }
+    };
+
+    initializeRoom();
+  }, []);
+
   return (
     <div className="w-screen h-[100svh] bg-[#5C2DD5] justify-center items-center flex flex-1 overflow-hidden">
       <AnimatedMenu>

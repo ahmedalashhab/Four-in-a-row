@@ -1,7 +1,6 @@
-import React from "react";
-import { AnimatedMenu, GameLinkButton } from "../Home/MainMenu";
-import pvp from "../../assets/images/player-vs-player.svg";
 import back from "../../assets/images/back.svg";
+import pvp from "../../assets/images/player-vs-player.svg";
+import { AnimatedMenu, GameLinkButton } from "../Home/MainMenu";
 
 export const JoinRoom = () => {
   // this is a list of rooms that are available to join
@@ -19,7 +18,7 @@ export const JoinRoom = () => {
           </div>
           <div className="flex flex-col justify-center items-center mt-[3.75rem]">
             <GameLinkButton
-              to="/pvp/online/room/:id"
+              to="/pvp/online/room/lobby"
               backgroundColor={"bg-[#FFCE67]"}
               color="black"
               imgSrc={pvp}

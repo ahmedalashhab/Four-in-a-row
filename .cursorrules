@@ -5,7 +5,12 @@ Key Principles
 - Write clean, maintainable TypeScript code with proper type definitions.
 - Use functional components and custom hooks for code organization.
 - Separate game logic from UI components.
-- Implement real-time multiplayer features using PartyKit's room-based architecture.
+- Implement real-time multiplayer features using PartyKit’s room-based architecture. Each PartyKit room runs in its own Durable Object, ensuring isolation and stateful behavior.([
+    1
+](https: //docs.partykit.io/how-partykit-works))
+- Store ephemeral state in-memory (within a single room instance) and use PartyKit’s built-in storage for persistent data (e.g., game metadata).([
+    2
+](https: //docs.partykit.io/guides/persisting-state-into-storage/))
 - Handle authentication and user management through Firebase.
 
 Project Structure
@@ -19,51 +24,65 @@ Project Structure
 - assets/: Static assets and resources
 
 Naming Conventions
-- Use PascalCase for component files (GameBoard.tsx)
-- Prefix hooks with "use" (useGameState.ts)
-- Use camelCase for utility functions (calculateWinner.ts)
-- Suffix type files with ".types.ts" (Game.types.ts)
+- Use PascalCase for component files (e.g., GameBoard.tsx).
+- Prefix hooks with “use” (e.g., useGameState.ts).
+- Use camelCase for utility functions (e.g., calculateWinner.ts).
+- Suffix type files with “.types.ts” (e.g., Game.types.ts).
 
 TypeScript Usage
-- Define interfaces for game state and player types
-- Use strict TypeScript checking
-- Avoid any types; use proper type definitions
-- Leverage TypeScript for game move validation
+- Define interfaces for game state and player types.
+- Use strict TypeScript checking.
+- Avoid any types; use proper type definitions.
+- Leverage TypeScript for game move validation.
 
 Game Architecture
-- Separate core game logic from UI components
-- Use custom hooks for game state management
-- Implement pure functions for game calculations
-- Handle multiplayer synchronization through PartyKit
+- Keep the core Connect Four logic (drop-counter, board checks, etc.) separate from UI components.  
+- Use custom hooks for game state management.  
+- Implement pure functions for checks (e.g., detecting four-in-a-row).  
+- Rely on PartyKit’s lifecycle methods (onConnect, onMessage, onClose) to handle real-time events.([
+    3
+](https: //docs.partykit.io/guides#handling-connection-events))  
+- Use room.broadcast to broadcast updated game states to all connected players.  
+- Provide the ability to either create a new room or join an existing one:  
+  1. If creating a new room, generate a unique ID (e.g., random words).  
+  2. Add room metadata (e.g., current game state, active players) into memory or storage.  
+  3. Redirect the user to that new PartyKit room.  
+  4. If joining a public room, show a listing of available rooms retrieved from the server.  
+  5. If joining a private room, allow the user to enter the specific room ID manually.  
+  6. Once joined, the user’s client wirelessly syncs with the designated PartyKit room.  
 
 Firebase Integration
-- Use Firebase Auth hooks for authentication state
-- Implement proper security rules
-- Handle user sessions and persistence
-- Keep Firebase configuration centralized
+- Use Firebase Auth hooks for authentication state.
+- Implement proper security rules.
+- Handle user sessions and persistence.
+- Keep Firebase configuration centralized (e.g., in a single firebaseConfig.ts file).
 
 PartyKit Implementation
-- Use room-based architecture for game sessions
-- Implement proper connection state handling
-- Handle reconnection scenarios gracefully
-- Sync game state across players efficiently
+- Use room-based architecture for game sessions—each session identified by a unique room ID.([
+    1
+](https: //docs.partykit.io/how-partykit-works))
+- In-memory state is maintained for each active room (e.g., storing player data, moves).
+- Use room.storage for data you want to persist across server restarts.([
+    2
+](https: //docs.partykit.io/guides/persisting-state-into-storage/))
+- Handle reconnects gracefully by re-sending or re-syncing ephemeral state as needed.
+- Sync game state across players using websockets (room.broadcast or room.send).
 
 Performance Optimization
-- Minimize unnecessary re-renders
-- Use React.memo for heavy components
-- Implement proper loading states
-- Handle network latency gracefully
+- Minimize unnecessary re-renders (e.g., React.memo, memoized callbacks).
+- Implement proper loading states on the client side.
+- Handle network latency gracefully (show “waiting for server” messages).
 
 Error Handling
-- Implement proper error boundaries
-- Handle network disconnections
-- Provide user feedback for game state
-- Log errors appropriately (avoid console.log in production)
+- Use error boundaries in React to catch rendering errors.
+- Handle network disconnections and re-sync state upon reconnection.
+- Provide user feedback for game state changes or errors.
+- Log or track errors appropriately; avoid console.log in production.
 
 Testing
-- Write unit tests for game logic
-- Test multiplayer scenarios
-- Verify authentication flows
-- Test edge cases in game rules
+- Write unit tests for core game logic (drop-counter, winner detection).
+- Test multiplayer scenarios thoroughly (concurrent moves, multiple connections).
+- Verify authentication flows.
+- Ensure the PartyKit server code handles onMessage and onConnect properly.
 
 Follow Firebase and PartyKit documentation for best practices in authentication and real-time multiplayer implementation.

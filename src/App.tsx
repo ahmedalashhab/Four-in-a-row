@@ -4,15 +4,15 @@ import "./App.css";
 import { Home } from "./components/Home/Home";
 import { JoinRoom } from "./components/PlayerVsPlayer/JoinRoom";
 import { PlayerVsPlayer } from "./components/PlayerVsPlayer/Player-Vs-Player";
+import { PreGameRoom } from "./components/PlayerVsPlayer/PreGameRoom";
 import { PVPMenu } from "./components/PlayerVsPlayer/PVPMenu";
 import { Rules } from "./components/Rules/Rules";
 import { Settings } from "./components/Settings/Settings";
 import { SignIn } from "./components/SignIn/SignIn";
-import { PreGameRoom } from "./components/PlayerVsPlayer/PreGameRoom";
 
 function App() {
   const [difficulty, setDifficulty] = useState<number>(2);
-  const [roomId, setRoomId] = useState<string | null>(null);
+  const [roomId, setRoomId] = useState<string | null>("lobby");
 
   //on boot, the difficulty is set to the value stored in the local storage
 
@@ -49,7 +49,7 @@ function App() {
         <Route path="/pvp/online/rooms" element={<JoinRoom />} />
         <Route
           path="/pvp/online/room"
-          element={<PreGameRoom roomId={roomId} />}
+          element={<PreGameRoom roomId={roomId} setRoomId={setRoomId} />}
         />
         <Route
           path="/pvp/online/room/:id"

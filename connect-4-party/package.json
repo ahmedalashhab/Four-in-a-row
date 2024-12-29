@@ -11,7 +11,8 @@
     "random-words": "^2.0.1"
   },
   "devDependencies": {
-    "partykit": "0.0.66",
+    "@ava/typescript": "^5.0.0",
+    "partykit": "^0.0.111",
     "typescript": "^5.3.3"
   }
 }
