@@ -14,21 +14,18 @@ import { Player } from "./Player";
 import { Turn } from "./Turn";
 
 interface GameBoardProps {
-  online: boolean;
-  onlineOpponentReady: boolean;
-  setOnlineOpponentReady: (ready: boolean) => void;
   winner: string;
   setWinner: (winner: string) => void;
   setGameBoard: (board: (string | null)[][]) => void;
   gameBoard: (string | null)[][];
   player2Score: number;
-  setPlayer2Score: React.Dispatch<React.SetStateAction<number>>;
+  setPlayer2Score: (score: number | ((prev: number) => number)) => void;
   player1Score: number;
-  setPlayer1Score: React.Dispatch<React.SetStateAction<number>>;
+  setPlayer1Score: (score: number | ((prev: number) => number)) => void;
   time: number;
   setTime: (time: number) => void;
   playerTurn: string;
-  setPlayerTurn: React.Dispatch<React.SetStateAction<string>>;
+  setPlayerTurn: (turn: string | ((prev: string) => string)) => void;
   resetGame: () => void;
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -38,16 +35,16 @@ interface GameBoardProps {
   lastGameWinner: string | null;
   roomId: string | null;
   setRoomId: (roomId: string | null) => void;
-  onMove?: (row: number, col: number, currentPlayer: string) => void;
+  onMove?: (row: number, col: number) => void;
   isHost?: boolean;
   canMove?: boolean;
-  playerNumber?: string | null;
+  playerNumber?: number;
+  online?: boolean;
+  onlineOpponentReady?: boolean;
+  setOnlineOpponentReady?: (ready: boolean) => void;
 }
 
 export const GameBoard = ({
-  online,
-  onlineOpponentReady,
-  setOnlineOpponentReady,
   winner,
   setWinner,
   setGameBoard,
@@ -73,7 +70,15 @@ export const GameBoard = ({
   isHost,
   canMove,
   playerNumber,
+  online = false,
+  onlineOpponentReady,
+  setOnlineOpponentReady,
 }: GameBoardProps) => {
+  if (!gameBoard || !Array.isArray(gameBoard)) {
+    console.error("Invalid gameBoard:", gameBoard);
+    return null;
+  }
+
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
   const [counterZIndex, setCounterZIndex] = useState<number>(10);
   const [counterStutter, setCounterStutter] = useState<boolean>(false);
@@ -125,58 +130,46 @@ export const GameBoard = ({
     return false;
   };
 
-  const dropCounter = (columnIndex: number): void => {
-    // Don't allow moves if it's not your turn in online mode
-    if (online && !canMove) {
-      console.log("Not your turn!");
-      return;
-    }
-
-    // Create a deep copy of the gameBoard array
-    let newGameBoard = gameBoard.map((row) => [...row]);
-
-    // Initialize a variable to store the row index of the empty cell
-    let emptyCellRowIndex = null;
-
-    // Iterate over the newGameBoard array from bottom to top
-    for (let i = newGameBoard.length - 1; i >= 0; i--) {
-      // Check if the cell in the selected column is empty
-      if (newGameBoard[i][columnIndex] === null) {
-        // If an empty cell is found, store its row index in the variable
-        emptyCellRowIndex = i;
-        // Break the loop
-        break;
+  const findEmptyCellInColumn = (columnIndex: number): number | null => {
+    // Start from the bottom of the column and move up
+    for (let rowIndex = gameBoard.length - 1; rowIndex >= 0; rowIndex--) {
+      if (gameBoard[rowIndex][columnIndex] === null) {
+        return rowIndex;
       }
     }
+    return null; // Column is full
+  };
 
-    // In the dropCounter function
+  const dropCounter = (columnIndex: number): void => {
+    if (winner || (online && !canMove)) return;
+
+    const newGameBoard = gameBoard.map((row) => [...row]);
+    const emptyCellRowIndex = findEmptyCellInColumn(columnIndex);
+
     if (emptyCellRowIndex !== null) {
       if (online && onMove) {
-        onMove(emptyCellRowIndex, columnIndex, playerTurn);
+        onMove(emptyCellRowIndex, columnIndex);
       } else {
         // Update the newGameBoard to place the current player's turn in the empty cell
         newGameBoard[emptyCellRowIndex][columnIndex] = playerTurn;
-
-        // Update the gameBoard state with the newGameBoard
         setGameBoard(newGameBoard);
 
-        // Check for win
+        // Check if the current move results in a win
         if (checkForWin(newGameBoard, emptyCellRowIndex, columnIndex)) {
           // Update the score of the current player
           if (playerTurn === "PLAYER 1") {
-            setPlayer1Score((prevPlayer1Score: number) => prevPlayer1Score + 1);
+            setPlayer1Score((prevPlayer1Score) => prevPlayer1Score + 1);
           } else {
-            setPlayer2Score((prevPlayer2Score: number) => prevPlayer2Score + 1);
+            setPlayer2Score((prevPlayer2Score) => prevPlayer2Score + 1);
           }
           setWinner(playerTurn);
           setLastGameWinner(playerTurn);
-
-          return;
+        } else {
+          // Switch the player's turn
+          setPlayerTurn((prevPlayerTurn) =>
+            prevPlayerTurn === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",
+          );
         }
-        // Switch the player's turn
-        setPlayerTurn((prevPlayerTurn: string) =>
-          prevPlayerTurn === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",
-        );
       }
     }
   };
@@ -413,7 +406,7 @@ export const GameBoard = ({
 
   const handleMove = (row: number, col: number) => {
     if (online && onMove) {
-      onMove(row, col, playerTurn);
+      onMove(row, col);
     } else {
       // Existing move logic for local play
       const newBoard = gameBoard.map((row) => [...row]);
@@ -421,7 +414,7 @@ export const GameBoard = ({
       setGameBoard(newBoard);
 
       // Check for win condition
-      if (checkWin(newBoard, row, col)) {
+      if (checkForWin(newBoard, row, col)) {
         setWinner(playerTurn);
         setLastGameWinner(playerTurn);
         if (playerTurn === "PLAYER 1") {
@@ -502,9 +495,20 @@ export const GameBoard = ({
     return false;
   };
 
+  const updateScores = (currentPlayer: string) => {
+    if (currentPlayer === "PLAYER 1") {
+      setPlayer1Score((prev) => prev + 1);
+    } else {
+      setPlayer2Score((prev) => prev + 1);
+    }
+  };
+
+  const switchPlayerTurn = () => {
+    setPlayerTurn((prev) => (prev === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1"));
+  };
+
   return (
     <motion.div
-      // slide the page in from the right
       initial={{ x: "100vw" }}
       animate={{ x: 0 }}
       transition={{ type: "spring", stiffness: 100 }}

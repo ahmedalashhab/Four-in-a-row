@@ -24,15 +24,21 @@ export const PreGameRoom = ({ roomId, setRoomId }: PreGameRoomProps) => {
   });
 
   useEffect(() => {
-    const initializeRoom = async () => {
+    const initRoom = async () => {
       if (!roomId) {
-        const newRoomId = await createRoom();
-        setRoomId(newRoomId);
+        try {
+          const newRoomId = await createRoom();
+          if (newRoomId) {
+            setRoomId(newRoomId);
+          }
+        } catch (error) {
+          console.error("Failed to create room:", error);
+        }
       }
     };
 
-    initializeRoom();
-  }, []);
+    initRoom();
+  }, [roomId, createRoom, setRoomId]);
 
   return (
     <div className="w-screen h-[100svh] bg-[#5C2DD5] justify-center items-center flex flex-1 overflow-hidden">

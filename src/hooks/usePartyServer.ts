@@ -1,224 +1,138 @@
-import PartySocket from "partysocket";
+import { usePartySocket } from "partysocket/react";
 import { useEffect, useState } from "react";
-
-interface GameState {
-    board: (string | null)[][];
-    playerTurn: string;
-    player1Score: number;
-    player2Score: number;
-    winner: string;
-    time: number;
-    lastGameWinner: string | null;
-}
-
-interface GameAction {
-    type: "MAKE_MOVE";
-    payload: {
-        row: number;
-        col: number;
-        player: string;
-    };
-}
+import { auth, gameService } from "../firebase";
+import type { GameState } from "../types/Game.types";
 
 interface UsePartyServerProps {
-    roomId: string | null;
-    onGameStateUpdate?: (state: GameState) => void;
-    onPlayerJoined?: () => void;
-    onPlayerLeft?: () => void;
-    initialGameState?: GameState;
+  roomId: string | null;
+  onGameStateUpdate?: (state: GameState) => void;
+  onPlayerJoined?: () => void;
+  onPlayerLeft?: () => void;
+  initialGameState?: GameState;
 }
 
-export const usePartyServer = ({
-    roomId,
-    onGameStateUpdate,
-    onPlayerJoined,
-    onPlayerLeft,
-    initialGameState,
-}: UsePartyServerProps) => {
-    const [socket, setSocket] = useState<PartySocket | null>(null);
-    const [isHost, setIsHost] = useState<boolean>(false);
-    const [isConnected, setIsConnected] = useState<boolean>(false);
-    const [playerNumber, setPlayerNumber] = useState<"PLAYER 1" | "PLAYER 2" | null>(null);
+export function usePartyServer({
+  roomId,
+  onGameStateUpdate,
+  onPlayerJoined,
+  onPlayerLeft,
+  initialGameState,
+}: UsePartyServerProps) {
+  const [isHost, setIsHost] = useState(false);
+  const [playerNumber, setPlayerNumber] = useState<1 | 2>(1);
+  const [currentGameState, setCurrentGameState] = useState<GameState | null>(
+    initialGameState || null,
+  );
 
-    useEffect(() => {
-        if (!roomId) return;
+  const socket = usePartySocket({
+    host: process.env.REACT_APP_PARTYKIT_HOST || "localhost:1999",
+    room: roomId || "lobby",
+    onMessage(event) {
+      const data = JSON.parse(event.data);
 
-        const newSocket = new PartySocket({
-            host: "localhost:1984",
-            room: roomId,
+      switch (data.type) {
+        case "GAME_STATE_UPDATE":
+          setCurrentGameState(data.payload);
+          if (onGameStateUpdate) {
+            onGameStateUpdate(data.payload);
+          }
+          break;
+
+        case "MOVE":
+          if (onGameStateUpdate) {
+            handleRemoteMove(data.payload);
+          }
+          break;
+
+        case "PLAYER_LEFT":
+          if (onPlayerLeft) {
+            onPlayerLeft();
+          }
+          break;
+
+        case "SYNC_RESPONSE":
+          setCurrentGameState(data.payload);
+          if (onGameStateUpdate) {
+            onGameStateUpdate(data.payload);
+          }
+          break;
+      }
+    },
+  });
+
+  // Update currentGameState when game state changes
+  useEffect(() => {
+    if (initialGameState) {
+      setCurrentGameState(initialGameState);
+    }
+  }, [initialGameState]);
+
+  const handleRemoteMove = (payload: any) => {
+    if (onGameStateUpdate) {
+      onGameStateUpdate(payload);
+    }
+  };
+
+  const updateGameState = async (state: GameState) => {
+    if (!roomId) return;
+    await gameService.updateGameState(roomId, state);
+    socket.send(JSON.stringify({ type: "GAME_STATE_UPDATE", payload: state }));
+  };
+
+  const makeMove = async (row: number, col: number, currentPlayer: string) => {
+    if (!roomId) return;
+    socket.send(
+      JSON.stringify({
+        type: "MOVE",
+        payload: { row, col, player: playerNumber },
+      }),
+    );
+  };
+
+  const createRoom = async (): Promise<string> => {
+    if (!roomId) {
+      const newRoomId = Math.random().toString(36).substring(2, 8);
+      setIsHost(true);
+      setPlayerNumber(1);
+      if (initialGameState) {
+        await updateGameState(initialGameState);
+      }
+      return newRoomId;
+    }
+    return roomId;
+  };
+
+  const isMyTurn = (currentTurn: string) => {
+    return (
+      (playerNumber === 1 && currentTurn === "PLAYER 1") ||
+      (playerNumber === 2 && currentTurn === "PLAYER 2")
+    );
+  };
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (roomId && auth.currentUser) {
+        gameService.updateGameState(roomId, {
+          status: "waiting",
+          lastMove: Date.now(),
         });
-
-        newSocket.addEventListener("open", () => {
-            console.log("Connected to game server");
-            setIsConnected(true);
-            if (isHost && initialGameState) {
-                newSocket.send(
-                    JSON.stringify({
-                        type: "GAME_STATE_UPDATE",
-                        payload: initialGameState,
-                    })
-                );
-            }
-        });
-
-        newSocket.addEventListener("message", (event) => {
-            const data = JSON.parse(event.data);
-            handleServerMessage(data);
-        });
-
-        newSocket.addEventListener("close", () => {
-            console.log("Disconnected from game server");
-            setIsConnected(false);
-            setPlayerNumber(null);
-        });
-
-        setSocket(newSocket);
-
-        return () => {
-            newSocket.close();
-        };
-    }, [roomId, isHost]);
-
-    const handleServerMessage = (message: any) => {
-        switch (message.type) {
-            case "ROOM_CREATED":
-                setIsHost(true);
-                setPlayerNumber("PLAYER 1");
-                break;
-
-            case "PLAYER_JOINED":
-                onPlayerJoined?.();
-                if (!playerNumber) {
-                    setPlayerNumber("PLAYER 2");
-                }
-                break;
-
-            case "GAME_STATE_UPDATE":
-                onGameStateUpdate?.(message.payload);
-                break;
-
-            case "PLAYER_LEFT":
-                onPlayerLeft?.();
-                break;
-
-            case "ASSIGN_PLAYER":
-                setPlayerNumber(message.payload.playerNumber);
-                break;
-        }
+      }
     };
 
-    const createRoom = async (customRoomId?: string) => {
-        const newRoomId = customRoomId || `game-${Math.random().toString(36).substring(7)}`;
-        const newSocket = new PartySocket({
-            host: "localhost:1984",
-            room: newRoomId,
-        });
-
-        return new Promise<string>((resolve, reject) => {
-            newSocket.addEventListener("open", () => {
-                newSocket.send(
-                    JSON.stringify({
-                        type: "CREATE_ROOM",
-                        payload: {
-                            gameState: initialGameState,
-                        },
-                    })
-                );
-                setIsHost(true);
-                setPlayerNumber("PLAYER 1");
-                setSocket(newSocket);
-                resolve(newRoomId);
-            });
-
-            newSocket.addEventListener("error", (error) => {
-                reject(error);
-            });
-        });
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      handleBeforeUnload();
     };
+  }, [roomId]);
 
-    const joinRoom = async (roomIdToJoin: string) => {
-        if (!socket) {
-            const newSocket = new PartySocket({
-                host: "localhost:1984",
-                room: roomIdToJoin,
-            });
-
-            return new Promise<void>((resolve, reject) => {
-                newSocket.addEventListener("open", () => {
-                    newSocket.send(
-                        JSON.stringify({
-                            type: "JOIN_ROOM",
-                            payload: { roomId: roomIdToJoin },
-                        })
-                    );
-                    setSocket(newSocket);
-                    resolve();
-                });
-
-                newSocket.addEventListener("error", (error) => {
-                    reject(error);
-                });
-            });
-        } else {
-            socket.send(
-                JSON.stringify({
-                    type: "JOIN_ROOM",
-                    payload: { roomId: roomIdToJoin },
-                })
-            );
-        }
-    };
-
-    const makeMove = (row: number, col: number) => {
-        if (!socket || !playerNumber) return;
-
-        const action: GameAction = {
-            type: "MAKE_MOVE",
-            payload: {
-                row,
-                col,
-                player: playerNumber
-            }
-        };
-
-        socket.send(JSON.stringify(action));
-    };
-
-    const updateGameState = (newState: GameState) => {
-        if (!socket) return;
-        socket.send(
-            JSON.stringify({
-                type: "GAME_STATE_UPDATE",
-                payload: newState,
-            })
-        );
-    };
-
-    const destroyRoom = () => {
-        if (!socket || !isHost) return;
-        socket.send(
-            JSON.stringify({
-                type: "DESTROY_ROOM",
-            })
-        );
-        socket.close();
-        setSocket(null);
-    };
-
-    const isMyTurn = (currentTurn: string): boolean => {
-        return playerNumber === currentTurn;
-    };
-
-    return {
-        socket,
-        isHost,
-        isConnected,
-        playerNumber,
-        isMyTurn,
-        createRoom,
-        joinRoom,
-        makeMove,
-        updateGameState,
-        destroyRoom,
-    };
-}; 
+  return {
+    isHost,
+    playerNumber,
+    updateGameState,
+    makeMove,
+    isMyTurn,
+    handleRemoteMove,
+    createRoom,
+  };
+}

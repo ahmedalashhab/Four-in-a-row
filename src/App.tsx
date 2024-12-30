@@ -33,12 +33,11 @@ function App() {
           path="/pvp/offline"
           element={
             <PlayerVsPlayer
-              CPUMode={false}
-              difficulty={difficulty}
-              setDifficulty={setDifficulty}
               online={false}
               roomId={roomId}
               setRoomId={setRoomId}
+              CPUMode={false}
+              difficulty={difficulty}
             />
           }
         />
