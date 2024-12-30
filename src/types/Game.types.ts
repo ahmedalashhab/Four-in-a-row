@@ -12,7 +12,8 @@ export interface GameState {
 export interface GameMove {
   row: number;
   col: number;
-  player: 1 | 2;
+  player: number;
+  timestamp?: number;
 }
 
 export interface GameStateUpdate {
@@ -35,14 +36,21 @@ export interface GamePlayer {
   ready: boolean;
 }
 
+export interface LastMove {
+  row: number;
+  col: number;
+  player: number;
+  timestamp: number;
+}
+
 export interface GameRoom {
   id: string;
   players: GamePlayer[];
-  currentTurn: 1 | 2;
+  currentTurn: number;
   status: "waiting" | "playing" | "finished";
   winner: string | null;
-  board: (string | null)[][];
-  lastMove: number;
+  lastMove: LastMove;
   createdAt: number;
   time: number;
+  board: (string | null)[][];
 }

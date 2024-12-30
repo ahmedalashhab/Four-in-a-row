@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, gameService } from "../../firebase";
 import type { GamePlayer, GameRoom } from "../../types/User.types";
@@ -26,11 +26,11 @@ interface GameState {
 }
 
 export const PlayerVsPlayer = ({
-  online,
+  online = false,
   roomId,
   setRoomId,
-  CPUMode,
-  difficulty,
+  CPUMode = false,
+  difficulty = 1,
   setDifficulty,
 }: PlayerVsPlayerProps) => {
   const [player1Score, setPlayer1Score] = useState<number>(0);
@@ -49,28 +49,33 @@ export const PlayerVsPlayer = ({
     useState<boolean>(false);
   const [gameRoom, setGameRoom] = useState<GameRoom | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<GamePlayer | null>(null);
-  const [isHost, setIsHost] = useState(false);
+  const [isHost, setIsHost] = useState<boolean>(false);
   const [playerNumber, setPlayerNumber] = useState<1 | 2>(1);
   const navigate = useNavigate();
-  const [showCopyMessage, setShowCopyMessage] = useState(false);
-  const [showPreGameModal, setShowPreGameModal] = useState(true);
-  const [canMove, setCanMove] = useState(true);
+  const [showCopyMessage, setShowCopyMessage] = useState<boolean>(false);
+  const [showPreGameModal, setShowPreGameModal] = useState<boolean>(true);
+  const [canMove, setCanMove] = useState<boolean>(true);
+  const isMounted = useRef(true);
 
   useEffect(() => {
-    // Get roomId from URL if it exists
-    const pathSegments = window.location.pathname.split("/");
-    const roomIdFromUrl = pathSegments[pathSegments.length - 1];
-
-    if (roomIdFromUrl && roomIdFromUrl !== "lobby") {
-      console.log("Setting room ID from URL:", roomIdFromUrl);
-      setRoomId(roomIdFromUrl);
-    }
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (!online) return;
+    const pathSegments = window.location.pathname.split("/");
+    const roomIdFromUrl = pathSegments[pathSegments.length - 1];
 
-    // Set up current player
+    if (roomIdFromUrl && roomIdFromUrl !== "lobby" && isMounted.current) {
+      console.log("Setting room ID from URL:", roomIdFromUrl);
+      setRoomId(roomIdFromUrl);
+    }
+  }, [setRoomId]);
+
+  useEffect(() => {
+    if (!online || !isMounted.current) return;
+
     const user = auth.currentUser;
     if (!user) {
       navigate("/signin");
@@ -79,19 +84,22 @@ export const PlayerVsPlayer = ({
 
     const player: GamePlayer = {
       uid: user.uid,
-      displayName: user.displayName,
-      email: user.email,
-      photoURL: user.photoURL,
+      displayName: user.displayName || "Guest",
+      email: user.email || "",
+      photoURL: user.photoURL || "",
       playerNumber: gameRoom?.players.length === 0 ? 1 : 2,
       score: 0,
     };
 
-    setCurrentPlayer(player);
+    if (isMounted.current) {
+      setCurrentPlayer(player);
+    }
 
-    // Listen to room updates
     if (roomId) {
       const unsubscribe = gameService.onRoomUpdate(roomId, (room) => {
-        setGameRoom(room);
+        if (isMounted.current) {
+          setGameRoom(room);
+        }
       });
 
       return () => unsubscribe();
@@ -256,34 +264,42 @@ export const PlayerVsPlayer = ({
   }, [online, roomId, currentPlayer, playerNumber]);
 
   useEffect(() => {
-    if (!online || !roomId || !gameRoom || winner || !onlineOpponentReady)
+    if (
+      !online ||
+      !roomId ||
+      !gameRoom ||
+      winner ||
+      !onlineOpponentReady ||
+      !isMounted.current
+    )
       return;
 
-    // Only the host should update the timer in Firebase
     const timer = setInterval(async () => {
-      if (time > 0) {
+      if (time > 0 && isMounted.current) {
         const newTime = time - 1;
         setTime(newTime);
 
         if (isHost) {
-          // Update time in Firebase
-          await gameService.updateGameState(roomId, {
-            ...gameRoom,
-            time: newTime,
-          });
-
-          // If time runs out, switch turns
-          if (newTime === 0) {
-            const nextTurn =
-              playerTurn === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1";
-            setPlayerTurn(nextTurn);
-            setTime(30); // Reset timer
-
+          try {
             await gameService.updateGameState(roomId, {
               ...gameRoom,
-              currentTurn: nextTurn === "PLAYER 1" ? 1 : 2,
-              time: 30,
+              time: newTime,
             });
+
+            if (newTime === 0 && isMounted.current) {
+              const nextTurn =
+                playerTurn === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1";
+              setPlayerTurn(nextTurn);
+              setTime(30);
+
+              await gameService.updateGameState(roomId, {
+                ...gameRoom,
+                currentTurn: nextTurn === "PLAYER 1" ? 1 : 2,
+                time: 30,
+              });
+            }
+          } catch (error) {
+            console.error("Error updating game state:", error);
           }
         }
       }
@@ -322,14 +338,17 @@ export const PlayerVsPlayer = ({
 
   const handleMove = async (row: number, col: number) => {
     try {
-      if (!roomId || !online) return;
+      if (!roomId || !online || !playerNumber) {
+        console.log("🚫 Cannot make move:", { roomId, online, playerNumber });
+        return;
+      }
 
       if (!canMove) {
         console.log("🎮 Not your turn!");
         return;
       }
 
-      await gameService.makeMove(roomId, row, col);
+      await gameService.makeMove(roomId, row, col, playerNumber);
     } catch (error) {
       console.error("🎮 Error making move:", error);
     }

@@ -1,22 +1,24 @@
 import { motion } from "framer-motion";
 import PartySocket from "partysocket";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import board_black from "../../assets/images/board-layer-black-large.svg";
 import board_white from "../../assets/images/board-layer-white-large.svg";
 import counter_red from "../../assets/images/counter-red-large.svg";
 import counter_yellow from "../../assets/images/counter-yellow-large.svg";
 import marker_red from "../../assets/images/marker-red.svg";
 import marker_yellow from "../../assets/images/marker-yellow.svg";
+import type { GameMove, GameRoom } from "../../types/Game.types";
 import { useRemoteGameboard } from "../Party/PartyHook";
 import { evaluate } from "../PlayerVsCPU/Evaluate";
 import { getNewStates, isValidMove, makeMove } from "../PlayerVsCPU/Moves";
 import { Player } from "./Player";
 import { Turn } from "./Turn";
+import { gameService } from "../../firebase";
 
 interface GameBoardProps {
   winner: string;
   setWinner: (winner: string) => void;
-  setGameBoard: (board: (string | null)[][]) => void;
+  setGameBoard: React.Dispatch<React.SetStateAction<(string | null)[][]>>;
   gameBoard: (string | null)[][];
   player2Score: number;
   setPlayer2Score: (score: number | ((prev: number) => number)) => void;
@@ -42,7 +44,47 @@ interface GameBoardProps {
   online?: boolean;
   onlineOpponentReady?: boolean;
   setOnlineOpponentReady?: (ready: boolean) => void;
+  gameRoom?: GameRoom;
 }
+
+// Add this type for move messages
+interface MoveMessage {
+  type: "MOVE";
+  row: number;
+  col: number;
+  player: number;
+}
+
+// Add createEmptyBoard at the top with other helper functions
+const createEmptyBoard = () =>
+  Array(6)
+    .fill(null)
+    .map(() => Array(7).fill(null));
+
+const ensureValidBoard = (board: any): (string | null)[][] => {
+  if (!board || !Array.isArray(board)) {
+    return Array(6)
+      .fill(null)
+      .map(() => Array(7).fill(null));
+  }
+
+  if (Array.isArray(board[0])) {
+    return board.map((row) =>
+      Array.isArray(row) ? [...row] : Array(7).fill(null),
+    );
+  }
+
+  return Array(6)
+    .fill(null)
+    .map((_, i) =>
+      Array(7)
+        .fill(null)
+        .map((_, j) => {
+          const rowData = board[i];
+          return rowData && rowData[j] ? rowData[j] : null;
+        }),
+    );
+};
 
 export const GameBoard = ({
   winner,
@@ -73,19 +115,21 @@ export const GameBoard = ({
   online = false,
   onlineOpponentReady,
   setOnlineOpponentReady,
+  gameRoom,
 }: GameBoardProps) => {
   if (!gameBoard || !Array.isArray(gameBoard)) {
     console.error("Invalid gameBoard:", gameBoard);
     return null;
   }
 
+  const [isProcessingMove, setIsProcessingMove] = useState(false);
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
   const [counterZIndex, setCounterZIndex] = useState<number>(10);
   const [counterStutter, setCounterStutter] = useState<boolean>(false);
 
   type BoardState = (string | null)[][];
 
-  const [, , , socket] = useRemoteGameboard(roomId, setRoomId, online) as [
+  const [, , , partySocket] = useRemoteGameboard(roomId, setRoomId, online) as [
     any,
     any,
     any,
@@ -130,47 +174,159 @@ export const GameBoard = ({
     return false;
   };
 
-  const findEmptyCellInColumn = (columnIndex: number): number | null => {
-    // Start from the bottom of the column and move up
-    for (let rowIndex = gameBoard.length - 1; rowIndex >= 0; rowIndex--) {
-      if (gameBoard[rowIndex][columnIndex] === null) {
+  const findEmptyCellInColumn = (
+    columnIndex: number,
+    board: (string | null)[][],
+  ): number | null => {
+    if (!board) return null;
+    for (let rowIndex = board.length - 1; rowIndex >= 0; rowIndex--) {
+      if (board[rowIndex][columnIndex] === null) {
         return rowIndex;
       }
     }
-    return null; // Column is full
+    return null;
   };
 
-  const dropCounter = (columnIndex: number): void => {
-    if (winner || (online && !canMove)) return;
+  // Add a move queue to handle rapid moves
+  const [moveQueue, setMoveQueue] = useState<GameMove[]>([]);
 
-    const newGameBoard = gameBoard.map((row) => [...row]);
-    const emptyCellRowIndex = findEmptyCellInColumn(columnIndex);
+  // Add mounted ref to track component lifecycle
+  const isMounted = useRef(true);
 
-    if (emptyCellRowIndex !== null) {
-      if (online && onMove) {
-        onMove(emptyCellRowIndex, columnIndex);
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  // Modify the useEffect that handles incoming moves
+  useEffect(() => {
+    if (!online || !partySocket) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      const move = JSON.parse(event.data) as GameMove;
+
+      setMoveQueue((prevQueue) => [...prevQueue, move]);
+    };
+
+    partySocket.addEventListener("message", handleMessage);
+
+    return () => {
+      partySocket.removeEventListener("message", handleMessage);
+    };
+  }, [online, partySocket]);
+
+  // Modify the useEffect that processes the move queue
+  useEffect(() => {
+    if (!isMounted.current || moveQueue.length === 0) return;
+
+    const move = moveQueue[0];
+
+    if (isMounted.current) {
+      setGameBoard((prevBoard) => {
+        if (!prevBoard) return createEmptyBoard();
+        const newBoard = prevBoard.map((row) => [...row]);
+        newBoard[move.row][move.col] = `PLAYER ${move.player}`;
+        return newBoard;
+      });
+
+      setPlayerTurn(`PLAYER ${move.player === 1 ? 2 : 1}`);
+      setMoveQueue((prevQueue) => prevQueue.slice(1));
+    }
+  }, [moveQueue]);
+
+  // Ensure we always have a valid local board
+  const [localBoard, setLocalBoard] = useState<(string | null)[][]>(() =>
+    Array(6)
+      .fill(null)
+      .map(() => Array(7).fill(null)),
+  );
+
+  // Keep track of last processed move to prevent duplicates
+  const lastProcessedMove = useRef<string | null>(null);
+
+  // Handle incoming moves from Firebase
+  useEffect(() => {
+    if (!online || !gameRoom?.lastMove) return;
+
+    const { row, col, player } = gameRoom.lastMove;
+    const moveKey = `${row}-${col}-${player}`;
+    if (lastProcessedMove.current === moveKey) return;
+
+    if (row === -1 || col === -1) return; // Skip invalid moves
+
+    setLocalBoard((prevBoard) => {
+      const newBoard = prevBoard.map((row) => [...row]);
+      newBoard[row][col] = `PLAYER ${player}`;
+      return newBoard;
+    });
+
+    lastProcessedMove.current = moveKey;
+    setPlayerTurn(`PLAYER ${player === 1 ? 2 : 1}`);
+  }, [gameRoom?.lastMove, online]);
+
+  // Modified dropCounter to handle both local and remote updates
+  const dropCounter = async (columnIndex: number) => {
+    if (winner || (online && !canMove)) {
+      console.log("Move prevented:", { winner, canMove });
+      return;
+    }
+
+    try {
+      const emptyCellRowIndex = findEmptyCellInColumn(columnIndex, localBoard);
+      if (emptyCellRowIndex === null) {
+        console.log("Column is full");
+        return;
+      }
+
+      // For online mode
+      if (online) {
+        try {
+          console.log("Making move:", {
+            roomId,
+            row: emptyCellRowIndex,
+            col: columnIndex,
+            playerNumber,
+          });
+
+          // Update local board immediately for responsiveness
+          const newBoard = localBoard.map((row) => [...row]);
+          newBoard[emptyCellRowIndex][columnIndex] = `PLAYER ${playerNumber}`;
+          setLocalBoard(newBoard);
+          setGameBoard(newBoard);
+
+          await gameService.makeMove(
+            roomId!,
+            emptyCellRowIndex,
+            columnIndex,
+            playerNumber as 1 | 2,
+          );
+        } catch (error) {
+          console.error("Failed to send move:", error);
+          // Revert local board on error
+          const revertedBoard = localBoard.map((row) => [...row]);
+          setLocalBoard(revertedBoard);
+          setGameBoard(revertedBoard);
+          return;
+        }
       } else {
-        // Update the newGameBoard to place the current player's turn in the empty cell
-        newGameBoard[emptyCellRowIndex][columnIndex] = playerTurn;
-        setGameBoard(newGameBoard);
+        // Offline mode logic
+        const newBoard = localBoard.map((row) => [...row]);
+        newBoard[emptyCellRowIndex][columnIndex] = playerTurn;
+        setLocalBoard(newBoard);
+        setGameBoard(newBoard);
 
-        // Check if the current move results in a win
-        if (checkForWin(newGameBoard, emptyCellRowIndex, columnIndex)) {
-          // Update the score of the current player
-          if (playerTurn === "PLAYER 1") {
-            setPlayer1Score((prevPlayer1Score) => prevPlayer1Score + 1);
-          } else {
-            setPlayer2Score((prevPlayer2Score) => prevPlayer2Score + 1);
-          }
+        if (checkForWin(newBoard, emptyCellRowIndex, columnIndex)) {
           setWinner(playerTurn);
-          setLastGameWinner(playerTurn);
+          updateScores(playerTurn);
         } else {
-          // Switch the player's turn
-          setPlayerTurn((prevPlayerTurn) =>
-            prevPlayerTurn === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",
+          setPlayerTurn((prev) =>
+            prev === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",
           );
         }
       }
+    } catch (error) {
+      console.error("Error in dropCounter:", error);
     }
   };
 
@@ -247,11 +403,16 @@ export const GameBoard = ({
     }
   }
 
-  const renderGameBoard = (): React.ReactElement => {
+  const renderGameBoard = (): JSX.Element => {
+    if (!localBoard) {
+      console.error("No valid board state");
+      return <div>Loading game board...</div>;
+    }
+
     return (
       <>
         <div className="absolute z-50 flex lg:ml-2 lg:mt-2 lg:pl-0">
-          {gameBoard[0].map((cell, j) => (
+          {localBoard[0].map((cell, j) => (
             <div
               key={j}
               className="relative flex flex-col items-center mb-4 cursor-pointer lg:mb-8"
@@ -277,7 +438,7 @@ export const GameBoard = ({
                   translate-y-[-3rem] lg:mr-1`}
                   />
                 )}
-              {gameBoard.map((row: any, i) => (
+              {localBoard.map((row: any, i) => (
                 <div
                   key={i}
                   className="lg:w-[4.6rem] lg:h-[4.6rem] select-none sm:w-[5.25rem] sm:h-[5.25rem] md:w-[5.8rem]
@@ -392,12 +553,12 @@ export const GameBoard = ({
 
   useEffect(() => {
     if (cpuMode && playerTurn === "PLAYER 2" && !winner) {
-      let bestMove = getBestMove(gameBoard, difficulty);
+      let bestMove = getBestMove(localBoard, difficulty);
       let randomColumn = Math.floor(Math.random() * 7);
       // wait 1 second before dropping the counter
       difficulty === 0 ? dropCounter(randomColumn) : dropCounter(bestMove);
     }
-    isDraw(gameBoard) && setWinner("NOBODY");
+    isDraw(localBoard) && setWinner("NOBODY");
   }, [counterStutter]);
 
   const isPhone = window.innerWidth < 821;
@@ -409,9 +570,9 @@ export const GameBoard = ({
       onMove(row, col);
     } else {
       // Existing move logic for local play
-      const newBoard = gameBoard.map((row) => [...row]);
+      const newBoard = localBoard.map((row) => [...row]);
       newBoard[row][col] = playerTurn;
-      setGameBoard(newBoard);
+      setLocalBoard(newBoard);
 
       // Check for win condition
       if (checkForWin(newBoard, row, col)) {
@@ -507,6 +668,32 @@ export const GameBoard = ({
     setPlayerTurn((prev) => (prev === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1"));
   };
 
+  // Add this effect to handle board updates
+  useEffect(() => {
+    if (!gameRoom?.board) return;
+
+    setLocalBoard(gameRoom.board);
+    console.log("🎮 Updated game board from room state:", gameRoom.board);
+  }, [gameRoom?.board, setLocalBoard]);
+
+  // Add effect to sync board state from Firebase
+  useEffect(() => {
+    if (!online || !gameRoom?.board) return;
+
+    console.log("Syncing board from Firebase:", gameRoom.board);
+    const validBoard = ensureValidBoard(gameRoom.board);
+    setLocalBoard(validBoard);
+    setGameBoard(validBoard);
+
+    if (gameRoom.lastMove) {
+      const { row, col, player } = gameRoom.lastMove;
+      if (checkForWin(validBoard, row, col)) {
+        setWinner(`PLAYER ${player}`);
+        updateScores(`PLAYER ${player}`);
+      }
+    }
+  }, [gameRoom?.board, gameRoom?.lastMove]);
+
   return (
     <motion.div
       initial={{ x: "100vw" }}
@@ -543,7 +730,7 @@ export const GameBoard = ({
           open={open}
           setOpen={setOpen}
           dropCounter={dropCounter}
-          gameBoard={gameBoard}
+          gameBoard={localBoard}
           online={online}
           onlineOpponentReady={onlineOpponentReady}
         />
