@@ -323,6 +323,15 @@ export const GameBoard = ({
           setGameBoard(newBoard);
           checkWin(newBoard, emptyCellRowIndex, columnIndex);
 
+          if (checkForWin(newBoard, emptyCellRowIndex, columnIndex)) {
+            setWinner(playerTurn);
+            updateScores(playerTurn);
+          } else {
+            setPlayerTurn((prev) =>
+              prev === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",
+            );
+          }
+
           await gameService.makeMove(
             roomId!,
             emptyCellRowIndex,
