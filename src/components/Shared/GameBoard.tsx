@@ -321,7 +321,7 @@ export const GameBoard = ({
           newBoard[emptyCellRowIndex][columnIndex] = `PLAYER ${playerNumber}`;
           setLocalBoard(newBoard);
           setGameBoard(newBoard);
-          checkForWin(newBoard, emptyCellRowIndex, columnIndex);
+          checkWin(newBoard, emptyCellRowIndex, columnIndex);
 
           await gameService.makeMove(
             roomId!,
@@ -596,33 +596,6 @@ export const GameBoard = ({
 
   const isPhone = window.innerWidth < 821;
 
-  const handleMove = (row: number, col: number) => {
-    if (online && onMove) {
-      onMove(row, col);
-    } else {
-      // Existing move logic for local play
-      const newBoard = localBoard.map((row) => [...row]);
-      newBoard[row][col] = playerTurn;
-      setLocalBoard(newBoard);
-
-      // Check for win condition
-      if (checkForWin(newBoard, row, col)) {
-        setWinner(playerTurn);
-        setLastGameWinner(playerTurn);
-        if (playerTurn === "PLAYER 1") {
-          setPlayer1Score((prev) => prev + 1);
-        } else {
-          setPlayer2Score((prev) => prev + 1);
-        }
-      } else {
-        // Switch turns
-        setPlayerTurn((prev) =>
-          prev === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",
-        );
-      }
-    }
-  };
-
   // Function to check for win condition
   const checkWin = (
     board: (string | null)[][],
@@ -695,10 +668,6 @@ export const GameBoard = ({
     }
   };
 
-  const switchPlayerTurn = () => {
-    setPlayerTurn((prev) => (prev === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1"));
-  };
-
   // Add this effect to handle board updates
   useEffect(() => {
     if (!gameRoom?.board) return;
@@ -733,7 +702,7 @@ export const GameBoard = ({
       const { row, col, player } = gameRoom.lastMove;
       console.log("🎮 [SYNC] Checking win condition:", { row, col, player });
 
-      if (checkForWin(validBoard, row, col)) {
+      if (checkWin(validBoard, row, col)) {
         console.log("🎮 [SYNC] Win detected for Player", player);
         setWinner(`PLAYER ${player}`);
         updateScores(`PLAYER ${player}`);

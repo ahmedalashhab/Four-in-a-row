@@ -354,44 +354,6 @@ export const PlayerVsPlayer = ({
     }
   };
 
-  // Add win checking function
-  const checkWinner = (board: (string | null)[][]) => {
-    // Horizontal check
-    for (let row = 0; row < 6; row++) {
-      for (let col = 0; col < 4; col++) {
-        const player = board[row][col];
-        if (
-          player &&
-          player === board[row][col + 1] &&
-          player === board[row][col + 2] &&
-          player === board[row][col + 3]
-        ) {
-          return player;
-        }
-      }
-    }
-
-    // Vertical check
-    for (let row = 0; row < 3; row++) {
-      for (let col = 0; col < 7; col++) {
-        const player = board[row][col];
-        if (
-          player &&
-          player === board[row + 1][col] &&
-          player === board[row + 2][col] &&
-          player === board[row + 3][col]
-        ) {
-          return player;
-        }
-      }
-    }
-
-    // Diagonal checks...
-    // (Add diagonal win checking logic)
-
-    return null;
-  };
-
   const playAgain = async () => {
     const newBoard = Array(6)
       .fill(null)
@@ -474,6 +436,11 @@ export const PlayerVsPlayer = ({
   }, [open]);
 
   const handlePlayAgain = async () => {
+    if (!online) {
+      playAgain();
+      return;
+    }
+
     if (!online || !roomId) return;
 
     const newBoard = Array(6)
