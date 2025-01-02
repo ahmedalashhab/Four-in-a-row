@@ -321,6 +321,7 @@ export const GameBoard = ({
           newBoard[emptyCellRowIndex][columnIndex] = `PLAYER ${playerNumber}`;
           setLocalBoard(newBoard);
           setGameBoard(newBoard);
+          checkForWin(newBoard, emptyCellRowIndex, columnIndex);
 
           await gameService.makeMove(
             roomId!,
@@ -429,6 +430,11 @@ export const GameBoard = ({
       return value;
     }
   }
+
+  useEffect(() => {
+    // whenever gameBoard changes, update the local board
+    setLocalBoard(gameBoard);
+  }, [gameBoard]);
 
   const renderGameBoard = (): JSX.Element => {
     if (!localBoard) {

@@ -148,7 +148,7 @@ export const PlayerVsPlayer = ({
     }
 
     setPlayerTurn(`PLAYER ${gameRoom.currentTurn}`);
-  }, [gameRoom]);
+  }, [gameRoom?.currentTurn]);
 
   useEffect(() => {
     if (!online || !roomId) return;

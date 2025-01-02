@@ -6,7 +6,9 @@ export default class GameRoom implements Party.Server {
 
   // Store game state in memory
   gameState: GameState = {
-    board: Array(6).fill(Array(7).fill(null)),
+    board: Array(6)
+      .fill(null)
+      .map(() => Array(7).fill(null)),
     playerTurn: "PLAYER 1",
     player1Score: 0,
     player2Score: 0,

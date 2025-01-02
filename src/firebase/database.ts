@@ -14,7 +14,9 @@ export const gameService = {
       winner: null,
       createdAt: Date.now(),
       lastMove: Date.now(),
-      board: Array(6).fill(Array(7).fill(null)),
+      board: Array(6)
+        .fill(null)
+        .map(() => Array(7).fill(null)),
       time: 30,
     };
 
