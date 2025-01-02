@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, gameService } from "../../firebase";
 import type { GamePlayer, GameRoom } from "../../types/User.types";
@@ -78,7 +78,7 @@ export const PlayerVsPlayer = ({
 
     const user = auth.currentUser;
     if (!user) {
-      navigate("/signin");
+      navigate("/pvp/online");
       return;
     }
 
