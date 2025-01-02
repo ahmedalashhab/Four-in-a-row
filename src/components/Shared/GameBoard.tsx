@@ -1,19 +1,19 @@
 import { motion } from "framer-motion";
 import PartySocket from "partysocket";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import board_black from "../../assets/images/board-layer-black-large.svg";
 import board_white from "../../assets/images/board-layer-white-large.svg";
 import counter_red from "../../assets/images/counter-red-large.svg";
 import counter_yellow from "../../assets/images/counter-yellow-large.svg";
 import marker_red from "../../assets/images/marker-red.svg";
 import marker_yellow from "../../assets/images/marker-yellow.svg";
+import { gameService } from "../../firebase";
 import type { GameMove, GameRoom } from "../../types/Game.types";
 import { useRemoteGameboard } from "../Party/PartyHook";
 import { evaluate } from "../PlayerVsCPU/Evaluate";
 import { getNewStates, isValidMove, makeMove } from "../PlayerVsCPU/Moves";
 import { Player } from "./Player";
 import { Turn } from "./Turn";
-import { gameService } from "../../firebase";
 
 interface GameBoardProps {
   winner: string;
@@ -247,17 +247,37 @@ export const GameBoard = ({
 
   // Handle incoming moves from Firebase
   useEffect(() => {
-    if (!online || !gameRoom?.lastMove) return;
+    if (!online || !gameRoom?.lastMove) {
+      console.log("🎮 [BOARD] Skipping move update:", {
+        online,
+        hasLastMove: !!gameRoom?.lastMove,
+      });
+      return;
+    }
 
     const { row, col, player } = gameRoom.lastMove;
     const moveKey = `${row}-${col}-${player}`;
-    if (lastProcessedMove.current === moveKey) return;
 
-    if (row === -1 || col === -1) return; // Skip invalid moves
+    console.log("🎮 [BOARD] Processing move:", {
+      moveKey,
+      lastProcessed: lastProcessedMove.current,
+      currentBoard: localBoard,
+    });
+
+    if (lastProcessedMove.current === moveKey) {
+      console.log("🎮 [BOARD] Move already processed, skipping");
+      return;
+    }
+
+    if (row === -1 || col === -1) {
+      console.log("🎮 [BOARD] Invalid move coordinates, skipping");
+      return;
+    }
 
     setLocalBoard((prevBoard) => {
       const newBoard = prevBoard.map((row) => [...row]);
       newBoard[row][col] = `PLAYER ${player}`;
+      console.log("🎮 [BOARD] Updated local board:", newBoard);
       return newBoard;
     });
 
@@ -267,22 +287,29 @@ export const GameBoard = ({
 
   // Modified dropCounter to handle both local and remote updates
   const dropCounter = async (columnIndex: number) => {
+    console.log("🎮 [DROP] Attempting move:", {
+      columnIndex,
+      winner,
+      canMove,
+      online,
+    });
+
     if (winner || (online && !canMove)) {
-      console.log("Move prevented:", { winner, canMove });
+      console.log("🚫 [DROP] Move prevented:", { winner, canMove });
       return;
     }
 
     try {
       const emptyCellRowIndex = findEmptyCellInColumn(columnIndex, localBoard);
       if (emptyCellRowIndex === null) {
-        console.log("Column is full");
+        console.log("🚫 [DROP] Column is full");
         return;
       }
 
       // For online mode
       if (online) {
         try {
-          console.log("Making move:", {
+          console.log("🎮 [DROP] Making online move:", {
             roomId,
             row: emptyCellRowIndex,
             col: columnIndex,
@@ -302,7 +329,7 @@ export const GameBoard = ({
             playerNumber as 1 | 2,
           );
         } catch (error) {
-          console.error("Failed to send move:", error);
+          console.error("🔴 [DROP] Failed to send move:", error);
           // Revert local board on error
           const revertedBoard = localBoard.map((row) => [...row]);
           setLocalBoard(revertedBoard);
@@ -563,8 +590,6 @@ export const GameBoard = ({
 
   const isPhone = window.innerWidth < 821;
 
-  console.log("online:", online);
-
   const handleMove = (row: number, col: number) => {
     if (online && onMove) {
       onMove(row, col);
@@ -678,16 +703,32 @@ export const GameBoard = ({
 
   // Add effect to sync board state from Firebase
   useEffect(() => {
-    if (!online || !gameRoom?.board) return;
+    if (!online || !gameRoom?.board) {
+      console.log("🎮 [SYNC] Skipping sync:", {
+        online,
+        hasBoard: !!gameRoom?.board,
+      });
+      return;
+    }
 
-    console.log("Syncing board from Firebase:", gameRoom.board);
+    console.log("🎮 [SYNC] Syncing board from Firebase:", {
+      board: gameRoom.board,
+      lastMove: gameRoom.lastMove,
+      currentTurn: gameRoom.currentTurn,
+    });
+
     const validBoard = ensureValidBoard(gameRoom.board);
+    console.log("🎮 [SYNC] Validated board:", validBoard);
+
     setLocalBoard(validBoard);
     setGameBoard(validBoard);
 
     if (gameRoom.lastMove) {
       const { row, col, player } = gameRoom.lastMove;
+      console.log("🎮 [SYNC] Checking win condition:", { row, col, player });
+
       if (checkForWin(validBoard, row, col)) {
+        console.log("🎮 [SYNC] Win detected for Player", player);
         setWinner(`PLAYER ${player}`);
         updateScores(`PLAYER ${player}`);
       }
