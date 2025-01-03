@@ -38,7 +38,7 @@ interface GameBoardProps {
   onMove?: (row: number, col: number) => void;
   isHost?: boolean;
   canMove?: boolean;
-  playerNumber?: number;
+  playerNumber?: 1 | 2;
   online?: boolean;
   onlineOpponentReady?: boolean;
   setOnlineOpponentReady?: (ready: boolean) => void;
@@ -721,10 +721,12 @@ export const GameBoard = ({
           alt="board shadow"
         />
         <Turn
-          playerTurn={playerTurn}
-          setPlayerTurn={setPlayerTurn}
+          online={online}
+          onlineOpponentReady={onlineOpponentReady}
           time={time}
           setTime={setTime}
+          playerTurn={playerTurn}
+          setPlayerTurn={setPlayerTurn}
           player1Score={player1Score}
           player2Score={player2Score}
           winner={winner}
@@ -732,9 +734,9 @@ export const GameBoard = ({
           open={open}
           setOpen={setOpen}
           dropCounter={dropCounter}
-          gameBoard={localBoard}
-          online={online}
-          onlineOpponentReady={onlineOpponentReady}
+          gameBoard={gameBoard}
+          canMove={canMove}
+          playerNumber={playerNumber}
         />
       </div>
       {!isPhone && <Player pNumber={2} score={player2Score} />}

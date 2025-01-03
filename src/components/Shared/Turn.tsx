@@ -18,6 +18,8 @@ interface TurnProps {
   setOpen: (arg0: boolean) => void;
   dropCounter: (columnIndex: number) => void;
   gameBoard: (string | null)[][];
+  canMove?: boolean;
+  playerNumber?: 1 | 2;
 }
 
 export const Turn = ({
@@ -35,6 +37,8 @@ export const Turn = ({
   setOpen,
   dropCounter,
   gameBoard,
+  canMove,
+  playerNumber,
 }: TurnProps) => {
   // generate a random number between 1 and 7 then check if the move is valid
   const [randomNum, setRandomNum] = useState<number>(0);
@@ -70,6 +74,14 @@ export const Turn = ({
   useEffect(() => {
     setTime(30);
   }, [playerTurn]);
+
+  const getTurnText = () => {
+    if (!online) {
+      return `${playerTurn}'S TURN`;
+    }
+
+    return canMove ? "YOUR TURN" : "AWAITING OPPONENT";
+  };
 
   return (
     <div className="absolute font-bold bottom-0 translate-y-32 z-50 select-none scale-75 lg:scale-100">
@@ -109,7 +121,7 @@ export const Turn = ({
                 online ? "text-[12px] lg:text-[14px]" : "text-[16px]"
               } mb-[-0.5rem]`}
             >
-              {online ? "AWAITING OPPONENT" : `${playerTurn}'S TURN`}
+              {getTurnText()}
             </span>
             <h3 className="text-[56px]">{time}s</h3>
           </div>
