@@ -426,6 +426,10 @@ export const GameBoard = ({
   useEffect(() => {
     // whenever gameBoard changes, update the local board
     setLocalBoard(gameBoard);
+    // check if the gameBoard is completely empty
+    if (gameBoard.every((row) => row.every((cell) => cell === null))) {
+      setWinner("");
+    }
   }, [gameBoard]);
 
   const renderGameBoard = (): JSX.Element => {

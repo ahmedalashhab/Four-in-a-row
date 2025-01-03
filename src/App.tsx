@@ -4,7 +4,6 @@ import "./App.css";
 import { Home } from "./components/Home/Home";
 import { JoinRoom } from "./components/PlayerVsPlayer/JoinRoom";
 import { PlayerVsPlayer } from "./components/PlayerVsPlayer/Player-Vs-Player";
-import { PreGameRoom } from "./components/PlayerVsPlayer/PreGameRoom";
 import { PVPMenu } from "./components/PlayerVsPlayer/PVPMenu";
 import { Rules } from "./components/Rules/Rules";
 import { Settings } from "./components/Settings/Settings";
@@ -46,10 +45,7 @@ function App() {
           element={<SignIn setRoomId={setRoomId} roomId={roomId} />}
         />
         <Route path="/pvp/online/rooms" element={<JoinRoom />} />
-        <Route
-          path="/pvp/online/room"
-          element={<PreGameRoom roomId={roomId} setRoomId={setRoomId} />}
-        />
+
         <Route
           path="/pvp/online/room/:id"
           element={

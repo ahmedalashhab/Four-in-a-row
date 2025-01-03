@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, gameService } from "../../firebase";
 import type { GamePlayer, GameRoom } from "../../types/User.types";
+import { checkWin } from "../../utils/boardUtils";
 import { GameBoard } from "../Shared/GameBoard";
 import { Nav } from "../Shared/Nav";
 import { PreGameModal } from "./PreGameModal";
-import { checkWin } from "../../utils/boardUtils";
 
 interface PlayerVsPlayerProps {
   online: boolean;
