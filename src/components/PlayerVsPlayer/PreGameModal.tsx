@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { gameService } from "../../firebase";
 import type { GamePlayer, GameRoom } from "../../types/User.types";
 
@@ -18,6 +19,19 @@ export const PreGameModal = ({
   const [isReady, setIsReady] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [guestPlayer, setGuestPlayer] = useState<GamePlayer | null>(null);
+  const navigate = useNavigate();
+
+  // Add leave room handler
+  const handleLeaveRoom = async () => {
+    try {
+      // Leave the room
+      await gameService.leaveRoom(room.id, room.players[playerNumber - 1].uid);
+      // Navigate back to the lobby
+      navigate("/pvp/online");
+    } catch (error) {
+      console.error("Error leaving room:", error);
+    }
+  };
 
   // Add effect to track guest player updates
   useEffect(() => {
@@ -225,29 +239,49 @@ export const PreGameModal = ({
           </div>
         </div>
 
-        {/* Ready Button */}
-        <button
-          onClick={handleReady}
-          disabled={countdown !== null || (isHost && !guestPlayer)}
-          className={`
-            mt-6 sm:mt-8 w-full h-12 sm:h-14 
-            rounded-[20px] border-[3px] border-black 
-            font-bold text-white transition-all
-            text-sm sm:text-base
-            ${
-              isReady
-                ? "bg-[#FD6687] hover:bg-[#e05576]"
-                : "bg-[#5C2DD5] hover:bg-[#4c25b0]"
-            }
-            ${
-              countdown !== null || (isHost && !guestPlayer)
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:translate-y-[-4px]"
-            }
-          `}
-        >
-          {isReady ? "Cancel Ready" : "Ready"}
-        </button>
+        {/* Buttons Container */}
+        <div className="mt-6 sm:mt-8 space-y-3">
+          {/* Ready Button */}
+          <button
+            onClick={handleReady}
+            disabled={countdown !== null || (isHost && !guestPlayer)}
+            className={`
+              w-full h-12 sm:h-14 
+              rounded-[20px] border-[3px] border-black 
+              font-bold text-white transition-all
+              text-sm sm:text-base
+              ${
+                isReady
+                  ? "bg-[#FD6687] hover:bg-[#e05576]"
+                  : "bg-[#5C2DD5] hover:bg-[#4c25b0]"
+              }
+              ${
+                countdown !== null || (isHost && !guestPlayer)
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:translate-y-[-4px]"
+              }
+            `}
+          >
+            {isReady ? "Cancel Ready" : "Ready"}
+          </button>
+
+          {/* Leave Room Button */}
+          <button
+            onClick={handleLeaveRoom}
+            className={`
+              w-full h-12 sm:h-14 
+              rounded-[20px] border-[3px] border-black 
+              font-bold text-white transition-all
+              text-sm sm:text-base
+              bg-gray-500 hover:bg-gray-600
+              hover:translate-y-[-4px]
+              ${countdown !== null ? "opacity-50 cursor-not-allowed" : ""}
+            `}
+            disabled={countdown !== null}
+          >
+            Leave Room
+          </button>
+        </div>
 
         {/* Room Code */}
         <div className="mt-4 text-center">
