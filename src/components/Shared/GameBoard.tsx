@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import PartySocket from "partysocket";
 import React, { useEffect, useRef, useState } from "react";
 import board_black from "../../assets/images/board-layer-black-large.svg";
 import board_white from "../../assets/images/board-layer-white-large.svg";
@@ -9,7 +8,6 @@ import marker_red from "../../assets/images/marker-red.svg";
 import marker_yellow from "../../assets/images/marker-yellow.svg";
 import { gameService } from "../../firebase";
 import type { GameMove, GameRoom } from "../../types/Game.types";
-import { useRemoteGameboard } from "../Party/PartyHook";
 import { evaluate } from "../PlayerVsCPU/Evaluate";
 import { getNewStates, isValidMove, makeMove } from "../PlayerVsCPU/Moves";
 import { Player } from "./Player";
@@ -128,13 +126,6 @@ export const GameBoard = ({
   const [counterStutter, setCounterStutter] = useState<boolean>(false);
 
   type BoardState = (string | null)[][];
-
-  const [, , , partySocket] = useRemoteGameboard(roomId, setRoomId, online) as [
-    any,
-    any,
-    any,
-    PartySocket,
-  ];
 
   const checkForWin = (
     gameBoard: (string | null)[][],
