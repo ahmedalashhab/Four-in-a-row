@@ -140,57 +140,100 @@ export const PreGameModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-[20px] p-8 border-[3px] border-black shadow-mainCard max-w-md w-full mx-4">
-        <h2 className="text-2xl font-bold text-center mb-6">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-[20px] p-4 sm:p-6 md:p-8 border-[3px] border-black shadow-mainCard w-full max-w-[90%] sm:max-w-[400px] mx-auto">
+        {/* Title */}
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-4 sm:mb-6">
           {countdown !== null
             ? `Game starting in ${countdown}...`
             : "Waiting for players"}
         </h2>
 
-        <div className="space-y-4">
-          {/* Host */}
-          <div className="flex justify-between items-center">
-            <span className="font-bold">
-              Host: {room.players[0]?.displayName}
-              {playerNumber === 1 && " (You)"}
-            </span>
-            {room.players[0]?.ready ? (
-              <span className="text-green-500 font-bold">Ready!</span>
-            ) : (
-              <span className="text-gray-400">Not ready</span>
-            )}
+        {/* Players Section */}
+        <div className="space-y-4 sm:space-y-6">
+          {/* Host Player */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              {room.players[0]?.photoURL && (
+                <img
+                  src={room.players[0].photoURL}
+                  alt="Host"
+                  className="w-8 h-8 rounded-full"
+                />
+              )}
+              <span className="font-bold text-sm sm:text-base truncate">
+                {room.players[0]?.displayName}
+                {playerNumber === 1 && " (You)"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  room.players[0]?.ready ? "bg-green-500" : "bg-gray-300"
+                }`}
+              />
+              <span
+                className={`text-sm ${
+                  room.players[0]?.ready ? "text-green-500" : "text-gray-400"
+                }`}
+              >
+                {room.players[0]?.ready ? "Ready!" : "Not ready"}
+              </span>
+            </div>
           </div>
 
-          {/* Guest */}
-          <div className="flex justify-between items-center">
+          {/* Guest Player */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 p-3 bg-gray-50 rounded-lg">
             {guestPlayer ? (
               <>
-                <span className="font-bold">
-                  Guest: {guestPlayer.displayName}
-                  {playerNumber === 2 && " (You)"}
-                </span>
-                {guestPlayer.ready ? (
-                  <span className="text-green-500 font-bold">Ready!</span>
-                ) : (
-                  <span className="text-gray-400">Not ready</span>
-                )}
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  {guestPlayer.photoURL && (
+                    <img
+                      src={guestPlayer.photoURL}
+                      alt="Guest"
+                      className="w-8 h-8 rounded-full"
+                    />
+                  )}
+                  <span className="font-bold text-sm sm:text-base truncate">
+                    {guestPlayer.displayName}
+                    {playerNumber === 2 && " (You)"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      guestPlayer.ready ? "bg-green-500" : "bg-gray-300"
+                    }`}
+                  />
+                  <span
+                    className={`text-sm ${
+                      guestPlayer.ready ? "text-green-500" : "text-gray-400"
+                    }`}
+                  >
+                    {guestPlayer.ready ? "Ready!" : "Not ready"}
+                  </span>
+                </div>
               </>
             ) : (
-              <>
-                <span className="text-gray-500 font-bold">
-                  Guest: awaiting guest to join...
+              <div className="flex items-center gap-2 w-full">
+                <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
+                <span className="text-gray-500 font-bold text-sm sm:text-base">
+                  Waiting for opponent...
                 </span>
-                <span className="text-gray-400">Not connected</span>
-              </>
+              </div>
             )}
           </div>
         </div>
 
+        {/* Ready Button */}
         <button
           onClick={handleReady}
           disabled={countdown !== null || (isHost && !guestPlayer)}
-          className={`mt-8 w-full h-[4rem] rounded-[20px] border-[3px] border-black font-bold text-white transition-all
+          className={`
+            mt-6 sm:mt-8 w-full h-12 sm:h-14 
+            rounded-[20px] border-[3px] border-black 
+            font-bold text-white transition-all
+            text-sm sm:text-base
             ${
               isReady
                 ? "bg-[#FD6687] hover:bg-[#e05576]"
@@ -205,6 +248,13 @@ export const PreGameModal = ({
         >
           {isReady ? "Cancel Ready" : "Ready"}
         </button>
+
+        {/* Room Code */}
+        <div className="mt-4 text-center">
+          <p className="text-xs sm:text-sm text-gray-500">
+            Room Code: <span className="font-mono font-bold">{room.id}</span>
+          </p>
+        </div>
       </div>
     </div>
   );

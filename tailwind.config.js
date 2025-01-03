@@ -10,6 +10,26 @@ module.exports = {
       fontFamily: {
         main: ["Space Grotesk", "sans-serif"],
       },
+      keyframes: {
+        "winner-announcement": {
+          "0%": {
+            transform: "scale(0.3) translateY(100px)",
+            opacity: "0",
+          },
+          "50%": {
+            transform: "scale(1.2) translateY(0)",
+            opacity: "1",
+          },
+          "100%": {
+            transform: "scale(1) translateY(0)",
+            opacity: "1",
+          },
+        },
+      },
+      animation: {
+        "winner-announcement":
+          "winner-announcement 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
+      },
     },
   },
   plugins: [],

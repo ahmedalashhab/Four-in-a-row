@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import ReactConfetti from "react-confetti";
 import { useNavigate } from "react-router-dom";
+import { useWindowSize } from "react-use";
 import { auth, gameService } from "../../firebase";
 import type { GamePlayer, GameRoom } from "../../types/User.types";
 import { checkWin } from "../../utils/boardUtils";
@@ -24,6 +26,16 @@ interface GameState {
   winner: string;
   time: number;
   lastGameWinner: string | null;
+}
+
+interface ConfettiConfig {
+  numberOfPieces: number;
+  recycle: boolean;
+  gravity: number;
+  wind: number;
+  ticks: number;
+  initialVelocityY: number;
+  spread: number;
 }
 
 export const PlayerVsPlayer = ({
@@ -57,6 +69,32 @@ export const PlayerVsPlayer = ({
   const [showPreGameModal, setShowPreGameModal] = useState<boolean>(true);
   const [canMove, setCanMove] = useState<boolean>(true);
   const isMounted = useRef(true);
+  const { width, height } = useWindowSize();
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [confettiConfig, setConfettiConfig] = useState<ConfettiConfig>({
+    numberOfPieces: 200,
+    recycle: false,
+    gravity: 0.3,
+    wind: 0,
+    ticks: 400,
+    initialVelocityY: 30,
+    spread: 90,
+  });
+
+  useEffect(() => {
+    const isMobile = width < 768;
+    const isTablet = width >= 768 && width < 1024;
+
+    setConfettiConfig({
+      numberOfPieces: isMobile ? 100 : isTablet ? 150 : 200,
+      recycle: false,
+      gravity: isMobile ? 0.4 : 0.3,
+      wind: isMobile ? 0.01 : 0,
+      ticks: isMobile ? 300 : 400,
+      initialVelocityY: isMobile ? 20 : 30,
+      spread: isMobile ? 45 : 90,
+    });
+  }, [width]);
 
   useEffect(() => {
     return () => {
@@ -174,6 +212,14 @@ export const PlayerVsPlayer = ({
           setWinner(playerToken);
           setLastGameWinner(playerToken);
           updateScores(playerToken);
+
+          // Trigger win animations with cleanup
+          setShowConfetti(true);
+          const timer = setTimeout(() => {
+            setShowConfetti(false);
+          }, 5000);
+
+          return () => clearTimeout(timer);
         }
       }
     }
@@ -524,6 +570,43 @@ export const PlayerVsPlayer = ({
   return (
     <>
       <div className="w-screen h-[100svh] flex-1 bg-[#7945FF] justify-center lg:items-center pt-24 lg:pt-0 flex relative">
+        {showConfetti && (
+          <ReactConfetti
+            width={width}
+            height={height}
+            colors={
+              winner === "PLAYER 1"
+                ? ["#FD6687", "#FF94AB", "#FFB1C3"]
+                : ["#FFCE67", "#FFE0A3", "#FFE8BD"]
+            }
+            {...confettiConfig}
+            style={{
+              position: "fixed",
+              pointerEvents: "none",
+              inset: 0,
+              zIndex: 50,
+            }}
+          />
+        )}
+
+        {winner && (
+          <div className="fixed inset-0 flex items-center justify-center z-40 pointer-events-none px-4">
+            <div className="bg-white rounded-[20px] p-4 sm:p-6 md:p-8 border-[3px] border-black shadow-mainCard w-full max-w-[90%] sm:max-w-[400px] mx-auto">
+              <div
+                className={`
+                text-3xl sm:text-4xl md:text-5xl lg:text-6xl
+                font-bold text-black 
+                animate-winner-announcement 
+                text-center
+                ${winner === "PLAYER 1" ? "text-[#FD6687]" : "text-[#FFCE67]"}
+              `}
+              >
+                {winner} WINS!
+              </div>
+            </div>
+          </div>
+        )}
+
         <Nav
           restartGame={restartGame}
           open={open}
