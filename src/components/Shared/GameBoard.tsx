@@ -199,23 +199,6 @@ export const GameBoard = ({
     };
   }, []);
 
-  // Modify the useEffect that handles incoming moves
-  useEffect(() => {
-    if (!online || !partySocket) return;
-
-    const handleMessage = (event: MessageEvent) => {
-      const move = JSON.parse(event.data) as GameMove;
-
-      setMoveQueue((prevQueue) => [...prevQueue, move]);
-    };
-
-    partySocket.addEventListener("message", handleMessage);
-
-    return () => {
-      partySocket.removeEventListener("message", handleMessage);
-    };
-  }, [online, partySocket]);
-
   // Modify the useEffect that processes the move queue
   useEffect(() => {
     if (!isMounted.current || moveQueue.length === 0) return;
