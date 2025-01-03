@@ -123,7 +123,12 @@ export const PreGameModal = ({
       // Update the game state in Firebase
       await gameService.updateGameState(room.id, {
         players: updatedPlayers,
-        lastMove: Date.now(),
+        lastMove: {
+          row: -1,
+          col: -1,
+          player: 1,
+          timestamp: Date.now(),
+        },
       });
 
       console.log("🎮 [READY] Successfully updated ready state");

@@ -81,7 +81,12 @@ export const gameService = {
       currentTurn: 1,
       status: "waiting",
       winner: null,
-      lastMove: Date.now(),
+      lastMove: {
+        row: -1,
+        col: -1,
+        player: 1,
+        timestamp: Date.now(),
+      },
       createdAt: Date.now(),
       time: 30,
       board: Array(6)
@@ -315,7 +320,7 @@ export const gameService = {
           // 3. In "waiting" status for more than 30 minutes
           if (
             typedRoom.players.length === 0 ||
-            now - typedRoom.lastMove > inactiveThreshold ||
+            now - typedRoom.lastMove.timestamp > inactiveThreshold ||
             (typedRoom.status === "waiting" &&
               now - typedRoom.createdAt > inactiveThreshold)
           ) {

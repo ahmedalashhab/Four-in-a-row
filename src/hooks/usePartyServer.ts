@@ -114,7 +114,12 @@ export function usePartyServer({
       if (roomId && auth.currentUser) {
         gameService.updateGameState(roomId, {
           status: "waiting",
-          lastMove: Date.now(),
+          lastMove: {
+            row: -1,
+            col: -1,
+            player: 1,
+            timestamp: Date.now(),
+          },
         });
       }
     };

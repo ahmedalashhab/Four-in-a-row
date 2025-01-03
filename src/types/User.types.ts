@@ -11,6 +11,13 @@ export interface GamePlayer extends User {
   ready?: boolean;
 }
 
+interface LastMove {
+  row: number;
+  col: number;
+  player: 1 | 2;
+  timestamp: number;
+}
+
 export interface GameRoom {
   id: string;
   players: GamePlayer[];
@@ -18,7 +25,7 @@ export interface GameRoom {
   status: "waiting" | "playing" | "finished";
   winner: string | null;
   createdAt: number;
-  lastMove: number;
+  lastMove: LastMove;
   board: (string | null)[][];
   time: number;
 }

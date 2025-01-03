@@ -13,7 +13,12 @@ export const gameService = {
       status: "waiting",
       winner: null,
       createdAt: Date.now(),
-      lastMove: Date.now(),
+      lastMove: {
+        row: -1,
+        col: -1,
+        player: 1,
+        timestamp: Date.now(),
+      },
       board: Array(6)
         .fill(null)
         .map(() => Array(7).fill(null)),

@@ -5,6 +5,7 @@ import type { GamePlayer, GameRoom } from "../../types/User.types";
 import { GameBoard } from "../Shared/GameBoard";
 import { Nav } from "../Shared/Nav";
 import { PreGameModal } from "./PreGameModal";
+import { checkWin } from "../../utils/boardUtils";
 
 interface PlayerVsPlayerProps {
   online: boolean;
@@ -113,6 +114,7 @@ export const PlayerVsPlayer = ({
       board: gameRoom.board,
       currentTurn: gameRoom.currentTurn,
       status: gameRoom.status,
+      lastMove: gameRoom.lastMove,
     });
 
     // Convert board from object to array if needed
@@ -145,10 +147,38 @@ export const PlayerVsPlayer = ({
 
       console.log("🎮 Setting game board:", validBoard);
       setGameBoard(validBoard);
+
+      // Check for win after board update if there was a last move
+      if (gameRoom.lastMove && typeof gameRoom.lastMove.row === "number") {
+        const { row, col, player } = gameRoom.lastMove;
+        const playerToken = `PLAYER ${player}`;
+
+        console.log("🎮 Checking win condition for last move:", {
+          row,
+          col,
+          playerToken,
+        });
+
+        const hasWon = checkWin(validBoard, row, col, playerToken);
+
+        if (hasWon) {
+          console.log("🎮 Win detected for player:", playerToken);
+          setWinner(playerToken);
+
+          // Update scores
+          if (player === 1) {
+            setPlayer1Score((prev) => prev + 1);
+          } else {
+            setPlayer2Score((prev) => prev + 1);
+          }
+
+          setLastGameWinner(playerToken);
+        }
+      }
     }
 
     setPlayerTurn(`PLAYER ${gameRoom.currentTurn}`);
-  }, [gameRoom?.currentTurn]);
+  }, [gameRoom?.board, gameRoom?.currentTurn, gameRoom?.lastMove]);
 
   useEffect(() => {
     if (!online || !roomId) return;
@@ -452,7 +482,12 @@ export const PlayerVsPlayer = ({
       winner: null,
       status: "playing",
       time: 30,
-      lastMove: Date.now(),
+      lastMove: {
+        row: -1,
+        col: -1,
+        player: lastGameWinner === "PLAYER 1" ? 1 : 2,
+        timestamp: Date.now(),
+      },
     });
     setWinner("");
   };
