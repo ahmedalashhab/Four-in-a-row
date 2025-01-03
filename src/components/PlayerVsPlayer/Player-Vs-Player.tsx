@@ -454,6 +454,7 @@ export const PlayerVsPlayer = ({
       time: 30,
       lastMove: Date.now(),
     });
+    setWinner("");
   };
 
   useEffect(() => {
