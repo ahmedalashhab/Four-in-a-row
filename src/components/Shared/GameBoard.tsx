@@ -308,7 +308,6 @@ export const GameBoard = ({
 
           if (checkForWin(newBoard, emptyCellRowIndex, columnIndex)) {
             setWinner(playerTurn);
-            updateScores(playerTurn);
           } else {
             setPlayerTurn((prev) =>
               prev === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",

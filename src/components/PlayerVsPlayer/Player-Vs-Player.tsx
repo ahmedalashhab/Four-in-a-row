@@ -117,6 +117,14 @@ export const PlayerVsPlayer = ({
       lastMove: gameRoom.lastMove,
     });
 
+    const updateScores = (currentPlayer: string) => {
+      if (currentPlayer === "PLAYER 1") {
+        setPlayer1Score((prev) => prev + 1);
+      } else {
+        setPlayer2Score((prev) => prev + 1);
+      }
+    };
+
     // Convert board from object to array if needed
     if (gameRoom.board) {
       let validBoard: (string | null)[][];
@@ -164,15 +172,8 @@ export const PlayerVsPlayer = ({
         if (hasWon) {
           console.log("🎮 Win detected for player:", playerToken);
           setWinner(playerToken);
-
-          // Update scores
-          if (player === 1) {
-            setPlayer1Score((prev) => prev + 1);
-          } else {
-            setPlayer2Score((prev) => prev + 1);
-          }
-
           setLastGameWinner(playerToken);
+          updateScores(playerToken);
         }
       }
     }
