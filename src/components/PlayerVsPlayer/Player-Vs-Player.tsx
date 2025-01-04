@@ -67,7 +67,7 @@ export const PlayerVsPlayer = ({
   const navigate = useNavigate();
   const [showCopyMessage, setShowCopyMessage] = useState<boolean>(false);
   const [showPreGameModal, setShowPreGameModal] = useState<boolean>(true);
-  const [canMove, setCanMove] = useState<boolean>(false);
+  const [canMove, setCanMove] = useState<boolean>(!online);
   const isMounted = useRef(true);
   const { width, height } = useWindowSize();
   const [showConfetti, setShowConfetti] = useState(false);
@@ -413,19 +413,62 @@ export const PlayerVsPlayer = ({
     return () => clearInterval(cleanupInterval);
   }, [online]);
 
+  useEffect(() => {
+    if (!online) {
+      const isMyTurn =
+        (playerNumber === 1 && playerTurn === "PLAYER 1") ||
+        (playerNumber === 2 && playerTurn === "PLAYER 2");
+      setCanMove(isMyTurn);
+    }
+  }, [playerTurn, playerNumber, online]);
+
   const handleMove = async (row: number, col: number) => {
     try {
-      if (!roomId || !online || !playerNumber) {
-        console.log("🚫 Cannot make move:", { roomId, online, playerNumber });
+      // For online mode
+      if (online) {
+        if (!roomId || !playerNumber) {
+          console.log("🚫 Cannot make move:", { roomId, online, playerNumber });
+          return;
+        }
+
+        if (!canMove) {
+          console.log("🎮 Not your turn!");
+          return;
+        }
+
+        await gameService.makeMove(roomId, row, col, playerNumber as 1 | 2);
         return;
       }
 
+      // Offline mode - handle move locally
       if (!canMove) {
         console.log("🎮 Not your turn!");
         return;
       }
 
-      await gameService.makeMove(roomId, row, col, playerNumber);
+      const newBoard = gameBoard.map((r) => [...r]);
+      newBoard[row][col] = `PLAYER ${playerNumber}`;
+      setGameBoard(newBoard);
+
+      // Update turn
+      const nextPlayerNumber = playerNumber === 1 ? 2 : 1;
+      const nextPlayerTurn = `PLAYER ${nextPlayerNumber}`;
+      setPlayerTurn(nextPlayerTurn);
+      setPlayerNumber(nextPlayerNumber);
+
+      // Check for win
+      const hasWon = checkWin(newBoard, row, col, `PLAYER ${playerNumber}`);
+      if (hasWon) {
+        setWinner(`PLAYER ${playerNumber}`);
+        setLastGameWinner(`PLAYER ${playerNumber}`);
+        if (playerNumber === 1) {
+          setPlayer1Score((prev) => prev + 1);
+        } else {
+          setPlayer2Score((prev) => prev + 1);
+        }
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000);
+      }
     } catch (error) {
       console.error("🎮 Error making move:", error);
     }

@@ -21,50 +21,48 @@ function generateRoomId(): string {
 
 // Helper function to convert Firebase board object to 2D array
 const convertBoardToArray = (boardData: any): (string | null)[][] => {
-  // Initialize empty board
+  // Initialize empty board with null values explicitly
   const board = Array(6)
     .fill(null)
     .map(() => Array(7).fill(null));
 
-  console.log("🎮 [CONVERT] Converting board data:", boardData);
-
-  // If boardData is already a 2D array with the correct structure, return a copy
+  // If boardData is already a 2D array, normalize it to ensure no undefined or empty values
   if (
     Array.isArray(boardData) &&
     boardData.length === 6 &&
     boardData.every((row) => Array.isArray(row) && row.length === 7)
   ) {
-    console.log("🎮 [CONVERT] Board is already in correct format");
-    return boardData.map((row) => [...row]);
+    return boardData.map((row: (string | null | undefined)[]) =>
+      Array(7)
+        .fill(null)
+        .map((_, index) => {
+          const cell = row[index];
+          return cell === undefined || cell === "" ? null : cell;
+        }),
+    );
   }
 
   // If boardData is an object (Firebase format), reconstruct the board
   if (boardData && typeof boardData === "object") {
-    // First, convert the object format to a more readable structure
-    const rows = Object.entries(boardData);
-    console.log("🎮 [CONVERT] Processing rows:", rows);
-
-    rows.forEach(([rowIndex, rowData]) => {
+    Object.entries(boardData).forEach(([rowIndex, rowData]) => {
       if (rowData && typeof rowData === "object") {
-        const cells = Object.entries(rowData as Record<string, string>);
-        console.log(`🎮 [CONVERT] Processing row ${rowIndex}:`, cells);
-
-        cells.forEach(([colIndex, value]) => {
-          const row = parseInt(rowIndex);
-          const col = parseInt(colIndex);
-          if (!isNaN(row) && !isNaN(col) && value) {
-            console.log(
-              `🎮 [CONVERT] Setting cell [${row}][${col}] to ${value}`,
-            );
-            board[row][col] = value;
-          }
-        });
+        Object.entries(rowData as Record<string, string>).forEach(
+          ([colIndex, value]) => {
+            const row = parseInt(rowIndex);
+            const col = parseInt(colIndex);
+            if (!isNaN(row) && !isNaN(col) && row < 6 && col < 7) {
+              board[row][col] = value || null;
+            }
+          },
+        );
       }
     });
   }
 
-  console.log("🎮 [CONVERT] Final converted board:", board);
-  return board;
+  // Ensure all positions have explicit null values
+  return board.map((row) =>
+    row.map((cell) => (cell === undefined || cell === "" ? null : cell)),
+  );
 };
 
 export const gameService = {
@@ -373,77 +371,46 @@ export const gameService = {
     col: number,
     playerNumber: 1 | 2,
   ): Promise<void> {
-    console.log("🎮 [MOVE] Making move:", { roomId, row, col, playerNumber });
-
     const roomRef = ref(database, `rooms/${roomId}`);
 
     try {
       await runTransaction(roomRef, (currentData) => {
         if (!currentData) {
-          console.error("🔴 [MOVE] Room not found:", roomId);
           throw new Error("Room not found");
         }
 
         const room = currentData as GameRoom;
-        console.log("🎮 [MOVE] Current room state:", {
-          currentTurn: room.currentTurn,
-          playerNumber,
-          board: room.board,
-          boardType: typeof room.board,
-          isArray: Array.isArray(room.board),
-        });
 
-        // Validate turn
         if (room.currentTurn !== playerNumber) {
-          console.log("🚫 [MOVE] Not player's turn:", {
-            expected: room.currentTurn,
-            attempted: playerNumber,
-          });
           return;
         }
 
-        // Convert the board data to our expected format
+        // Convert and ensure no undefined values
         let currentBoard = convertBoardToArray(room.board);
-
-        console.log("🎮 [MOVE] Board before move:", {
-          board: currentBoard,
-          currentMove: { row, col, player: playerNumber },
-        });
 
         // Make the move
         currentBoard[row][col] = `PLAYER ${playerNumber}`;
 
-        console.log("🎮 [MOVE] Board after move:", currentBoard);
+        // Create storage object, only storing non-null values
+        const boardForStorage: Record<string, Record<string, string>> = {};
 
-        // Convert board to object format for Firebase storage
-        const boardForStorage = currentBoard.reduce<
-          Record<string, Record<string, string>>
-        >((acc, row, rowIndex) => {
-          const nonNullCells = row.reduce<Record<string, string>>(
-            (rowAcc, cell, colIndex) => {
-              if (cell !== null) {
-                console.log(
-                  `🎮 [STORE] Storing cell [${rowIndex}][${colIndex}]: ${cell}`,
-                );
-                rowAcc[colIndex.toString()] = cell;
-              }
-              return rowAcc;
-            },
-            {},
-          );
+        currentBoard.forEach((rowArray, rowIndex) => {
+          const nonNullCells: Record<string, string> = {};
+
+          rowArray.forEach((cell, colIndex) => {
+            if (cell !== null && cell !== undefined) {
+              nonNullCells[colIndex.toString()] = cell;
+            }
+          });
 
           if (Object.keys(nonNullCells).length > 0) {
-            acc[rowIndex.toString()] = nonNullCells;
+            boardForStorage[rowIndex.toString()] = nonNullCells;
           }
-          return acc;
-        }, {});
+        });
 
-        console.log("🎮 [STORE] Final board storage format:", boardForStorage);
-
-        // Create updated room state
-        const updatedRoom = {
+        return {
           ...room,
-          board: boardForStorage, // Store as object to preserve non-null values
+          board: boardForStorage,
           currentTurn: playerNumber === 1 ? 2 : 1,
           lastMove: {
             row,
@@ -452,35 +419,7 @@ export const gameService = {
             timestamp: Date.now(),
           },
         };
-
-        console.log("🎮 [MOVE] Final room state:", {
-          board: updatedRoom.board,
-          currentTurn: updatedRoom.currentTurn,
-          lastMove: updatedRoom.lastMove,
-        });
-
-        console.log("🎮 [MOVE] Validating board update:", {
-          originalBoard: currentBoard,
-          storedFormat: boardForStorage,
-          reconverted: convertBoardToArray(boardForStorage),
-        });
-
-        // Verify that both players' tokens are preserved
-        const tokensPreserved = currentBoard.every((row, i) =>
-          row.every((cell, j) => {
-            const reconverted = convertBoardToArray(boardForStorage);
-            return cell === reconverted[i][j];
-          }),
-        );
-
-        if (!tokensPreserved) {
-          console.error("🔴 [MOVE] Token preservation check failed!");
-        }
-
-        return updatedRoom;
       });
-
-      console.log("🎮 [MOVE] Move successfully completed");
     } catch (error) {
       console.error("🔴 [MOVE] Error making move:", error);
       throw error;

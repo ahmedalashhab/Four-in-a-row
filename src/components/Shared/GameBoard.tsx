@@ -296,7 +296,10 @@ export const GameBoard = ({
       if (online) {
         await handleMove(rowIndex, columnIndex);
       } else {
-        // Local game logic...
+        // Offline game logic
+        if (onMove) {
+          onMove(rowIndex, columnIndex);
+        }
       }
     } catch (error) {
       console.error("Error making move:", error);
