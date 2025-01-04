@@ -2,8 +2,10 @@ import { clsx } from "clsx";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import back from "../../assets/images/back.svg";
+import create_room from "../../assets/images/create-room.svg";
 import join_a_room from "../../assets/images/join-a-room.svg";
-import { SignInWithGoogle } from "../../firebase/Firebase";
+import sign_out from "../../assets/images/sign-out.svg";
+import { SignInWithGoogle, SignOut } from "../../firebase/Firebase";
 import { gameService } from "../../firebase/services/database.service";
 import { useAuth } from "../../hooks/useAuth";
 import type { GamePlayer } from "../../types/User.types";
@@ -13,6 +15,16 @@ interface SignInProps {
   roomId: string | null;
   setRoomId: (roomId: string | null) => void;
 }
+
+// Add this type to fix the children prop type
+type GameLinkButtonProps = {
+  to?: string;
+  backgroundColor: string;
+  color: string;
+  imgSrc?: string;
+  onClick?: () => void;
+  children: React.ReactNode; // Change from string to ReactNode
+};
 
 export const SignIn = ({ roomId, setRoomId }: SignInProps) => {
   const [signInError, setSignInError] = useState<string | null>(null);
@@ -87,6 +99,16 @@ export const SignIn = ({ roomId, setRoomId }: SignInProps) => {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      await SignOut();
+      // Optionally handle any cleanup needed after sign out
+    } catch (error) {
+      console.error("Error signing out:", error);
+      setSignInError("Failed to sign out. Please try again.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="w-screen h-[100svh] bg-[#5C2DD5] justify-center items-center flex">
@@ -114,45 +136,66 @@ export const SignIn = ({ roomId, setRoomId }: SignInProps) => {
             disabled={loading || !!user}
             className={clsx(
               `lg:w-[25rem] w-[21rem] lg:h-[4.5rem] h-[4rem] flex justify-between items-center rounded-[20px]
-              border-[3px] border-black px-[1.25rem] py-[0.625rem] text-white mt-[3.75rem]
+              border-[3px] border-black px-[1.25rem] py-[0.625rem] mt-[3.75rem]
               text-[1.25rem] transition ease-in-out hover:-translate-y-1 hover:scale-110 duration-300 select-none`,
               user
-                ? "pointer-events-none bg-[#e0e0e0]"
-                : "shadow-mainCard bg-[#FFCE67]",
+                ? "bg-[#D8DCFF] pointer-events-none shadow-mainCard"
+                : "shadow-mainCard bg-[#FFCE67] text-white",
             )}
           >
-            {loading
-              ? "Loading..."
-              : user
-                ? `Logged in as: ${user.displayName}`
-                : "Sign in with Google"}
+            {loading ? (
+              "Loading..."
+            ) : user ? (
+              <div className="flex items-center justify-between w-full">
+                <span className="text-black font-bold">
+                  {user.displayName || "Guest"}
+                </span>
+                <div className="bg-green-500 text-white px-2 py-0.5 rounded-full text-sm">
+                  Signed In
+                </div>
+              </div>
+            ) : (
+              <div className="text-black">Sign in with Google</div>
+            )}
           </button>
 
-          {user && (
+          {user ? (
             <>
               <GameLinkButton
+                backgroundColor={"bg-[#FFCE67]"}
+                color="black"
+                onClick={handleCreateRoom}
+                imgSrc={create_room}
+              >
+                {isCreatingRoom ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black"></div>
+                    Creating Room...
+                  </div>
+                ) : (
+                  "Create Room"
+                )}
+              </GameLinkButton>
+
+              <GameLinkButton
                 to={"rooms"}
-                backgroundColor={"bg-[#D8DCFF]"}
-                color={"black"}
+                backgroundColor={"bg-[#31C3BD]"}
+                color={"white"}
                 imgSrc={join_a_room}
               >
                 Join a room
               </GameLinkButton>
 
-              <button
-                onClick={handleCreateRoom}
-                disabled={isCreatingRoom}
-                className={`lg:w-[25rem] w-[21rem] lg:h-[4.5rem] h-[4rem] flex justify-between items-center 
-                         rounded-[20px] border-[3px] border-black ${
-                           isCreatingRoom ? "bg-gray-300" : "bg-[#AEADF0]"
-                         } 
-                         px-[1.25rem] py-[0.625rem] text-black mt-4 text-[1.25rem] transition ease-in-out 
-                         hover:-translate-y-1 hover:scale-110 duration-300 select-none`}
+              <GameLinkButton
+                backgroundColor={"bg-[#FD6687]"}
+                color={"white"}
+                onClick={handleSignOut}
+                imgSrc={sign_out}
               >
-                {isCreatingRoom ? "Creating Room..." : "Create Room"}
-              </button>
+                Sign Out
+              </GameLinkButton>
             </>
-          )}
+          ) : null}
 
           <GameLinkButton
             to={"/pvp"}

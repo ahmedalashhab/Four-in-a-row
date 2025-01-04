@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ComponentProps, FC } from "react";
+import { FC } from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/images/logo.svg";
 import pve from "../../assets/images/player-vs-cpu.svg";
@@ -8,12 +8,13 @@ import rules from "../../assets/images/rules.svg";
 import settings from "../../assets/images/settings.svg";
 import "../../index.css";
 
-interface GameLinkButtonProps extends ComponentProps<"button"> {
-  to: string;
+interface GameLinkButtonProps {
+  to?: string;
   backgroundColor: string;
   color: string;
   imgSrc?: string;
-  children: string;
+  onClick?: () => void;
+  children: React.ReactNode;
 }
 
 interface AnimatedMenu {
@@ -25,26 +26,36 @@ export const GameLinkButton: FC<GameLinkButtonProps> = ({
   to,
   backgroundColor,
   color,
-  children,
   imgSrc,
-  ...rest
-}) => (
-  <div className="flex items-center mt-[1.25rem]">
-    <Link to={to}>
-      <button
-        className={`lg:w-[25rem] w-[21rem] lg:h-[4.5rem] h-[4rem] flex justify-between items-center rounded-[20px]
-        border-[3px] ${backgroundColor} border-black shadow-mainCard px-[1.25rem] py-[0.625rem] text-white
-        text-[1.25rem] transition ease-in-out hover:-translate-y-1 hover:scale-110 duration-300 select-none`}
-        {...rest}
-      >
-        <h3 className={`text-${color} font-main font-bold select-none`}>
-          {children}
-        </h3>
-        {imgSrc && <img src={imgSrc} alt={children} className="h-[2.5rem]" />}
-      </button>
-    </Link>
-  </div>
-);
+  onClick,
+  children,
+}) => {
+  const buttonContent = (
+    <button
+      onClick={onClick}
+      className={`lg:w-[25rem] w-[21rem] lg:h-[4.5rem] h-[4rem] flex justify-between items-center rounded-[20px]
+      border-[3px] ${backgroundColor} border-black shadow-mainCard px-[1.25rem] py-[0.625rem] text-white
+      text-[1.25rem] transition ease-in-out hover:-translate-y-1 hover:scale-110 duration-300 select-none`}
+    >
+      <h3 className={`text-${color} font-main font-bold select-none`}>
+        {children}
+      </h3>
+      {imgSrc && (
+        <img
+          src={imgSrc}
+          alt={typeof children === "string" ? children : "button icon"}
+          className="h-[2.5rem]"
+        />
+      )}
+    </button>
+  );
+
+  return (
+    <div className="flex items-center mt-[1.25rem]">
+      {to ? <Link to={to}>{buttonContent}</Link> : buttonContent}
+    </div>
+  );
+};
 
 export const AnimatedMenu: React.FC<AnimatedMenu> = ({
   className,

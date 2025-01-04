@@ -22,7 +22,7 @@ export const JoinRoom = () => {
 
   const pageTransitionVariants = {
     enter: (direction: number) => ({
-      x: direction > 0 ? 1000 : -1000,
+      x: direction > 0 ? 500 : -500,
       opacity: 0,
     }),
     center: {
@@ -32,7 +32,7 @@ export const JoinRoom = () => {
     },
     exit: (direction: number) => ({
       zIndex: 0,
-      x: direction < 0 ? 1000 : -1000,
+      x: direction < 0 ? 500 : -500,
       opacity: 0,
     }),
   };
@@ -67,16 +67,23 @@ export const JoinRoom = () => {
     setCurrentPage((prev) => prev - 1);
   };
 
+  const TEN_MINUTES = 10 * 60 * 1000; // 10 minutes in milliseconds
+
   const fetchRooms = () => {
     setRefreshing(true);
     console.log("🔄 Refreshing rooms list...");
 
     const unsubscribe = gameService.onRoomsUpdate((updatedRooms) => {
       console.log("📥 Received rooms:", updatedRooms);
+      const currentTime = Date.now();
+
       setRooms(
-        updatedRooms.filter(
-          (room) => room.status === "waiting" && room.players.length < 2,
-        ),
+        updatedRooms.filter((room) => {
+          const isWaiting =
+            room.status === "waiting" && room.players.length < 2;
+          const isRecent = currentTime - room.createdAt < TEN_MINUTES;
+          return isWaiting && isRecent;
+        }),
       );
       setLoading(false);
       setRefreshing(false);
@@ -168,8 +175,15 @@ export const JoinRoom = () => {
 
         <motion.div
           key={currentPage}
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
+          custom={pageDirection}
+          variants={pageTransitionVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{
+            x: { type: "spring", stiffness: 400, damping: 30 },
+            opacity: { duration: 0.1 },
+          }}
           className="
             w-[3rem] h-[3rem] rounded-[20px] border-[3px] border-black shadow-mainCard
             font-bold text-[1rem] bg-[#5C2DD5] text-white
@@ -262,8 +276,8 @@ export const JoinRoom = () => {
                     animate="center"
                     exit="exit"
                     transition={{
-                      x: { type: "spring", stiffness: 300, damping: 30 },
-                      opacity: { duration: 0.2 },
+                      x: { type: "spring", stiffness: 400, damping: 30 },
+                      opacity: { duration: 0.1 },
                     }}
                   >
                     <div className="flex flex-col gap-2">
@@ -305,46 +319,7 @@ export const JoinRoom = () => {
                   </motion.div>
                 </AnimatePresence>
 
-                {rooms.length > ROOMS_PER_PAGE && (
-                  <div className="flex justify-center gap-3 mt-4">
-                    <button
-                      onClick={handlePrevPage}
-                      disabled={currentPage === 1}
-                      className={
-                        currentPage === 1
-                          ? buttonDisabledClasses
-                          : buttonActiveClasses
-                      }
-                    >
-                      PREV
-                    </button>
-
-                    <motion.div
-                      key={currentPage}
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="
-                        w-[3rem] h-[3rem] rounded-[20px] border-[3px] border-black shadow-mainCard
-                        font-bold text-[1rem] bg-[#5C2DD5] text-white
-                        flex items-center justify-center
-                      "
-                    >
-                      {currentPage}
-                    </motion.div>
-
-                    <button
-                      onClick={handleNextPage}
-                      disabled={currentPage === totalPages}
-                      className={
-                        currentPage === totalPages
-                          ? buttonDisabledClasses
-                          : buttonActiveClasses
-                      }
-                    >
-                      NEXT
-                    </button>
-                  </div>
-                )}
+                {rooms.length > ROOMS_PER_PAGE && renderPagination()}
               </div>
             )}
           </div>
