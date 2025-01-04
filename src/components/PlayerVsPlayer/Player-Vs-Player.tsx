@@ -594,14 +594,18 @@ export const PlayerVsPlayer = ({
             <div className="bg-white rounded-[20px] p-4 sm:p-6 md:p-8 border-[3px] border-black shadow-mainCard w-full max-w-[90%] sm:max-w-[400px] mx-auto">
               <div
                 className={`
-                text-3xl sm:text-4xl md:text-5xl lg:text-6xl
-                font-bold text-black 
-                animate-winner-announcement 
-                text-center
-                ${winner === "PLAYER 1" ? "text-[#FD6687]" : "text-[#FFCE67]"}
-              `}
+                  text-3xl sm:text-4xl md:text-5xl lg:text-6xl
+                  font-bold text-black 
+                  animate-winner-announcement 
+                  text-center
+                  ${
+                    winner === `PLAYER ${playerNumber}`
+                      ? "text-[#FD6687]"
+                      : "text-[#FFCE67]"
+                  }
+                `}
               >
-                {winner} WINS!
+                {winner === `PLAYER ${playerNumber}` ? "YOU WIN!" : "YOU LOST!"}
               </div>
             </div>
           </div>
