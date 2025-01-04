@@ -463,7 +463,7 @@ export const GameBoard = ({
     setLocalBoard(gameBoard);
     console.log("🎮 [GAMEBOARD] Gameboard changed:", gameBoard);
     // check if the gameBoard is completely empty
-    if (gameBoard.every((row) => row.every((cell) => cell === null))) {
+    if (gameBoard.every((row) => row.every((cell) => !cell))) {
       setWinner("");
     }
   }, [gameBoard]);
