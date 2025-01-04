@@ -559,16 +559,8 @@ export const GameBoard = ({
   };
 
   function isDraw(board: (string | null)[][]): boolean {
-    // Iterate over every cell in the top row (last available places to play a move)
-    for (let i = 0; i < board[0].length; i++) {
-      // If any cell in the top row is NULL, return false (game can still be played)
-      if (board[0][i] === null) {
-        return false;
-      }
-    }
-
-    // If we haven't returned yet, there must be no empty cells left
-    return true;
+    // Flatten the board and check if any cell is null
+    return !board.flat().some((cell) => cell === null);
   }
 
   function getBestMove(board: (string | null)[][], depth: number): number {
@@ -615,6 +607,7 @@ export const GameBoard = ({
     }, randomWaitTime * 1000);
   }, [playerTurn, winner]);
 
+  // In your useEffect where isDraw is called, update it to:
   useEffect(() => {
     if (cpuMode && playerTurn === "PLAYER 2" && !winner) {
       let bestMove = getBestMove(localBoard, difficulty);
@@ -622,7 +615,10 @@ export const GameBoard = ({
       // wait 1 second before dropping the counter
       difficulty === 0 ? dropCounter(randomColumn) : dropCounter(bestMove);
     }
-    isDraw(localBoard) && setWinner("NOBODY");
+    // Only set draw if there's no winner and the board is full
+    if (!winner && isDraw(localBoard)) {
+      setWinner("NOBODY");
+    }
   }, [counterStutter]);
 
   const isPhone = window.innerWidth < 821;
