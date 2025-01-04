@@ -91,7 +91,7 @@ export const gameService = {
       time: 30,
       board: Array(6)
         .fill(null)
-        .map(() => Array(7).fill(null)),
+        .map(() => Array(7).fill(0)),
     };
 
     try {
