@@ -178,7 +178,7 @@ export const GameBoard = ({
   ): number | null => {
     if (!board) return null;
     for (let rowIndex = board.length - 1; rowIndex >= 0; rowIndex--) {
-      if (board[rowIndex][columnIndex] === null) {
+      if (!board[rowIndex][columnIndex]) {
         return rowIndex;
       }
     }
@@ -561,7 +561,7 @@ export const GameBoard = ({
 
   function isDraw(board: (string | null)[][]): boolean {
     // Flatten the board and check if any cell is null
-    const isFull = !board.flat().some((cell) => cell === null);
+    const isFull = !board.flat().some((cell) => !cell);
     if (isFull) {
       console.log("🎮 [DRAW] Board is full:", board.flat());
     }

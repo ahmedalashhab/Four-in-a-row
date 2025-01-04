@@ -421,7 +421,7 @@ export const gameService = {
         >((acc, row, rowIndex) => {
           const nonNullCells = row.reduce<Record<string, string>>(
             (rowAcc, cell, colIndex) => {
-              if (cell !== null) {
+              if (cell) {
                 console.log(
                   `🎮 [STORE] Storing cell [${rowIndex}][${colIndex}]: ${cell}`,
                 );

@@ -14,7 +14,7 @@ export const isValidMove = (
   if (col < 0 || col >= 7) return false;
 
   // Check if the top cell in the column is empty
-  return board[0][col] === null;
+  return !board[0][col];
 };
 
 // Helper function to find the lowest empty row in a column
@@ -23,7 +23,7 @@ export const findLowestEmptyRow = (
   col: number,
 ): number => {
   for (let row = 5; row >= 0; row--) {
-    if (board[row][col] === null) {
+    if (!board[row][col]) {
       return row;
     }
   }
@@ -106,7 +106,7 @@ export const checkWin = (
 
 // Helper function to check if the board is full (draw)
 export const isBoardFull = (board: (string | null)[][]): boolean => {
-  return board[0].every((cell) => cell !== null);
+  return board[0].every((cell) => cell);
 };
 
 // Helper function to create a deep copy of the board

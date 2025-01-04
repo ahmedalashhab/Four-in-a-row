@@ -20,6 +20,7 @@ function App() {
     if (difficulty) {
       setDifficulty(JSON.parse(difficulty));
     }
+    console.log("😂 BUILD NUMBER: 1");
   }, []);
 
   return (

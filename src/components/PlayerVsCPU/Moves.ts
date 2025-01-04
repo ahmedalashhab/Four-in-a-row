@@ -1,6 +1,6 @@
 export function isValidMove(board: (string | null)[][], col: number): boolean {
   // A move is valid if the top-most row is empty
-  return board[0][col] === null;
+  return !board[0][col];
 }
 
 export function makeMove(
@@ -13,7 +13,7 @@ export function makeMove(
 
   // From bottom to top
   for (let row = newBoard.length - 1; row >= 0; row--) {
-    if (newBoard[row][col] === null) {
+    if (!newBoard[row][col]) {
       newBoard[row][col] = player;
       break;
     }
