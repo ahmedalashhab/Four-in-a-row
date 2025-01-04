@@ -67,7 +67,7 @@ export const PlayerVsPlayer = ({
   const navigate = useNavigate();
   const [showCopyMessage, setShowCopyMessage] = useState<boolean>(false);
   const [showPreGameModal, setShowPreGameModal] = useState<boolean>(true);
-  const [canMove, setCanMove] = useState<boolean>(true);
+  const [canMove, setCanMove] = useState<boolean>(false);
   const isMounted = useRef(true);
   const { width, height } = useWindowSize();
   const [showConfetti, setShowConfetti] = useState(false);
@@ -645,7 +645,8 @@ export const PlayerVsPlayer = ({
           setRoomId={setRoomId}
           onMove={handleMove}
           isHost={isHost}
-          canMove={online ? isMyTurn(playerTurn) : true}
+          canMove={canMove}
+          setCanMove={setCanMove}
           playerNumber={playerNumber}
         />
 

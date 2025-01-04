@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import turn_red from "../../assets/images/turn-background-red.svg";
 import turn_yellow from "../../assets/images/turn-background-yellow.svg";
 import { isValidMove } from "../PlayerVsCPU/Moves";
@@ -49,9 +49,13 @@ export const Turn = ({
   };
 
   useEffect(() => {
+    if (winner || open || (online && !canMove)) {
+      return;
+    }
+
     const timer = setTimeout(() => {
       !open &&
-        (online ? onlineOpponentReady : true) &&
+        (online ? onlineOpponentReady && canMove : true) &&
         setTime((prevTime: number) => prevTime - 1);
     }, 1000);
 
@@ -69,18 +73,40 @@ export const Turn = ({
     return () => {
       clearTimeout(timer);
     };
-  }, [time, open, gameBoard]);
+  }, [time, open, canMove, winner, online, onlineOpponentReady]);
 
   useEffect(() => {
-    setTime(30);
-  }, [playerTurn]);
+    if (!online) {
+      setTime(30);
+      return;
+    }
+
+    // Only reset timer when it becomes the player's turn
+    const isPlayerTurn =
+      (playerNumber === 1 && playerTurn === "PLAYER 1") ||
+      (playerNumber === 2 && playerTurn === "PLAYER 2");
+
+    if (isPlayerTurn && canMove) {
+      setTime(30);
+    }
+  }, [playerTurn, online, playerNumber, canMove]);
 
   const getTurnText = () => {
     if (!online) {
       return `${playerTurn}'S TURN`;
     }
 
-    return canMove ? "YOUR TURN" : "AWAITING OPPONENT";
+    // Add strict validation for online play
+    if (winner) {
+      return "";
+    }
+
+    // Only show "YOUR TURN" if it's actually the player's turn AND they can move
+    const isPlayerTurn =
+      (playerNumber === 1 && playerTurn === "PLAYER 1") ||
+      (playerNumber === 2 && playerTurn === "PLAYER 2");
+
+    return isPlayerTurn && canMove ? "YOUR TURN" : "AWAITING OPPONENT";
   };
 
   return (

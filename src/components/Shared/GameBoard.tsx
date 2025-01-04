@@ -43,6 +43,7 @@ interface GameBoardProps {
   onlineOpponentReady?: boolean;
   setOnlineOpponentReady?: (ready: boolean) => void;
   gameRoom?: GameRoom;
+  setCanMove?: (canMove: boolean) => void;
 }
 
 // Add this type for move messages
@@ -121,6 +122,7 @@ export const GameBoard = ({
   onlineOpponentReady,
   setOnlineOpponentReady,
   gameRoom,
+  setCanMove,
 }: GameBoardProps) => {
   if (!gameBoard || !Array.isArray(gameBoard)) {
     console.error("Invalid gameBoard:", gameBoard);
@@ -273,115 +275,33 @@ export const GameBoard = ({
 
   // Modify the dropCounter function
   const dropCounter = async (columnIndex: number) => {
-    console.log("🎮 [DROP] Attempting move:", {
-      columnIndex,
-      winner,
-      canMove,
-      online,
-    });
-
-    if (winner || (online && !canMove)) {
-      console.log("🚫 [DROP] Move prevented:", { winner, canMove });
+    if (online && !canMove) {
+      console.log("🚫 Cannot move: not your turn");
       return;
     }
 
-    const emptyCellRowIndex = findEmptyCellInColumn(columnIndex, localBoard);
-    if (emptyCellRowIndex === null) {
-      console.log("🚫 [DROP] Column is full");
+    if (winner || isProcessingMove) {
       return;
     }
+
+    setIsProcessingMove(true);
 
     try {
-      // For online mode
+      const rowIndex = findEmptyCellInColumn(columnIndex, gameBoard);
+      if (rowIndex === null) {
+        setIsProcessingMove(false);
+        return;
+      }
+
       if (online) {
-        let retryCount = 0;
-        let moveSuccessful = false;
-
-        // Update local board immediately for responsiveness
-        const newBoard = localBoard.map((row) => [...row]);
-        newBoard[emptyCellRowIndex][columnIndex] = `PLAYER ${playerNumber}`;
-        setLocalBoard(newBoard);
-        setGameBoard(newBoard);
-
-        setPendingMoves((prev) => ({
-          ...prev,
-          [`${emptyCellRowIndex}-${columnIndex}`]: true,
-        }));
-
-        try {
-          while (retryCount < MAX_RETRIES && !moveSuccessful) {
-            try {
-              console.log(
-                `🎮 [DROP] Attempt ${
-                  retryCount + 1
-                } to sync move with Firebase`,
-              );
-
-              await gameService.makeMove(
-                roomId!,
-                emptyCellRowIndex,
-                columnIndex,
-                playerNumber as 1 | 2,
-              );
-
-              moveSuccessful = true;
-              console.log("🎮 [DROP] Move successfully synced with Firebase");
-
-              // Check for win after successful move
-              if (checkWin(newBoard, emptyCellRowIndex, columnIndex)) {
-                setWinner(playerTurn);
-              } else {
-                setPlayerTurn((prev) =>
-                  prev === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",
-                );
-              }
-            } catch (error) {
-              console.error(
-                `🔴 [DROP] Attempt ${retryCount + 1} failed:`,
-                error,
-              );
-              retryCount++;
-
-              if (retryCount < MAX_RETRIES) {
-                console.log(`🎮 [DROP] Retrying in ${RETRY_DELAY}ms...`);
-                await delay(RETRY_DELAY);
-              }
-            }
-          }
-        } finally {
-          // Clear the pending move state
-          setPendingMoves((prev) => {
-            const newPending = { ...prev };
-            delete newPending[`${emptyCellRowIndex}-${columnIndex}`];
-            return newPending;
-          });
-        }
-
-        if (!moveSuccessful) {
-          console.error("🔴 [DROP] All retry attempts failed");
-          // Revert local board on final failure
-          const revertedBoard = localBoard.map((row) => [...row]);
-          setLocalBoard(revertedBoard);
-          setGameBoard(revertedBoard);
-        }
+        await handleMove(rowIndex, columnIndex);
       } else {
-        // Existing offline mode logic...
-        const newBoard = localBoard.map((row) => [...row]);
-        newBoard[emptyCellRowIndex][columnIndex] = playerTurn;
-        setLocalBoard(newBoard);
-        setGameBoard(newBoard);
-
-        if (checkWin(newBoard, emptyCellRowIndex, columnIndex)) {
-          setWinner(playerTurn);
-          updateScores(playerTurn);
-        } else {
-          setPlayerTurn((prev) =>
-            prev === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1",
-          );
-        }
+        // Local game logic...
       }
     } catch (error) {
-      console.error("Error in dropCounter:", error);
+      console.error("Error making move:", error);
+    } finally {
+      setIsProcessingMove(false);
     }
   };
 
@@ -559,15 +479,15 @@ export const GameBoard = ({
   };
 
   function isDraw(board: (string | null)[][]): boolean {
-    // Iterate over every cell in the top row (last available places to play a move)
-    for (let i = 0; i < board[0].length; i++) {
-      // If any cell in the top row is NULL, return false (game can still be played)
-      if (board[0][i] === null) {
-        return false;
+    // Check if any column in the board has empty spaces
+    for (let col = 0; col < board[0].length; col++) {
+      // Check if the top cell in this column is empty
+      if (board[0][col] === null) {
+        return false; // Found an empty space, game is not a draw
       }
     }
 
-    // If we haven't returned yet, there must be no empty cells left
+    // If we get here, all columns are full
     return true;
   }
 
@@ -740,6 +660,67 @@ export const GameBoard = ({
       }
     }
   }, [gameRoom?.board, gameRoom?.lastMove]);
+
+  // Add the handleMove function
+  const handleMove = async (rowIndex: number, columnIndex: number) => {
+    try {
+      if (!roomId || !playerNumber) return;
+
+      // Update local board immediately for responsiveness
+      const newBoard = localBoard.map((row) => [...row]);
+      newBoard[rowIndex][columnIndex] = `PLAYER ${playerNumber}`;
+      setLocalBoard(newBoard);
+      setGameBoard(newBoard);
+
+      // Make the move in Firebase
+      await gameService.makeMove(roomId, rowIndex, columnIndex, playerNumber);
+
+      // Check for win after successful move
+      if (checkWin(newBoard, rowIndex, columnIndex)) {
+        setWinner(`PLAYER ${playerNumber}`);
+        updateScores(`PLAYER ${playerNumber}`);
+      }
+      // Only check for draw if there's no winner
+      else if (isDraw(newBoard)) {
+        setWinner("NOBODY");
+      }
+    } catch (error) {
+      console.error("Error making move:", error);
+      // Revert local board on error
+      setLocalBoard(gameBoard);
+    }
+  };
+
+  // Update the useEffect that handles game state updates
+  useEffect(() => {
+    if (!online || !gameRoom?.board) return;
+
+    const validBoard = ensureValidBoard(gameRoom.board);
+    setGameBoard(validBoard);
+
+    // Update turn state based on gameRoom state
+    const currentTurn = `PLAYER ${gameRoom.currentTurn}`;
+    setPlayerTurn(currentTurn);
+
+    // Check for draw condition
+    if (!winner && isDraw(validBoard)) {
+      setWinner("NOBODY");
+    }
+
+    // Only update canMove if the prop is provided
+    if (setCanMove) {
+      const isPlayerTurn =
+        (playerNumber === 1 && gameRoom.currentTurn === 1) ||
+        (playerNumber === 2 && gameRoom.currentTurn === 2);
+      setCanMove(isPlayerTurn);
+    }
+  }, [
+    gameRoom?.board,
+    gameRoom?.currentTurn,
+    playerNumber,
+    setCanMove,
+    winner,
+  ]);
 
   return (
     <motion.div
