@@ -6,10 +6,29 @@ import player2 from "../../assets/images/player-two.svg";
 interface PlayerProps {
   pNumber: number;
   score: number;
+  online?: boolean;
+  isCurrentPlayer?: boolean;
+  cpuMode?: boolean;
 }
 
-export const Player = ({ pNumber, score }: PlayerProps) => {
+export const Player = ({
+  pNumber,
+  score,
+  online,
+  isCurrentPlayer,
+  cpuMode,
+}: PlayerProps) => {
   const isPhone = window.innerWidth < 821;
+
+  const getPlayerText = () => {
+    if (online) {
+      return isCurrentPlayer ? "YOU" : "OPPONENT";
+    }
+    if (cpuMode) {
+      return pNumber === 1 ? "YOU" : "CPU";
+    }
+    return `PLAYER ${pNumber}`;
+  };
 
   return (
     <div
@@ -29,7 +48,7 @@ export const Player = ({ pNumber, score }: PlayerProps) => {
         alt="player"
       />
       <div className="flex flex-col items-center justify-center lg:translate-y-5">
-        <h3 className="lg:text-[20px] text-[16px]">PLAYER {pNumber}</h3>
+        <h3 className="lg:text-[20px] text-[16px]">{getPlayerText()}</h3>
         <span className="lg:text-[56px] text-[32px] mt-[-10px]">{score}</span>
       </div>
     </div>

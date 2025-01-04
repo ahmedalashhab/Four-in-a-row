@@ -44,6 +44,8 @@ interface GameBoardProps {
   setOnlineOpponentReady?: (ready: boolean) => void;
   gameRoom?: GameRoom;
   setCanMove?: (canMove: boolean) => void;
+  winningPositions: Array<[number, number]>;
+  setWinningPositions: (positions: Array<[number, number]>) => void;
 }
 
 // Add this type for move messages
@@ -123,6 +125,8 @@ export const GameBoard = ({
   setOnlineOpponentReady,
   gameRoom,
   setCanMove,
+  winningPositions,
+  setWinningPositions,
 }: GameBoardProps) => {
   if (!gameBoard || !Array.isArray(gameBoard)) {
     console.error("Invalid gameBoard:", gameBoard);
@@ -436,7 +440,15 @@ export const GameBoard = ({
                     <motion.img
                       src={counter_red}
                       alt="counter"
-                      className="lg:w-[4rem] sm:w-[4.6rem] md:w-[4.8rem] w-[2.5rem] select-none absolute h-auto z-[-1]"
+                      className={`lg:w-[4rem] sm:w-[4.6rem] md:w-[4.8rem] w-[2.5rem] 
+                        select-none absolute h-auto z-[-1]
+                        ${
+                          winningPositions.some(
+                            ([row, col]) => row === i && col === j,
+                          )
+                            ? "animate-winning-counter"
+                            : ""
+                        }`}
                       initial={{ y: -700 }}
                       animate={{ y: 0 }}
                       onAnimationStart={() => {
@@ -456,15 +468,23 @@ export const GameBoard = ({
                     <motion.img
                       src={counter_yellow}
                       alt="counter"
+                      className={`lg:w-[4rem] sm:w-[4.6rem] md:w-[4.8rem] w-[2.5rem] 
+                        select-none absolute h-auto z-[-1]
+                        ${
+                          winningPositions.some(
+                            ([row, col]) => row === i && col === j,
+                          )
+                            ? "animate-winning-counter"
+                            : ""
+                        }`}
+                      initial={{ y: -700 }}
+                      animate={{ y: 0 }}
                       onAnimationStart={() => {
                         setCounterZIndex(0);
                       }}
                       onAnimationComplete={() => {
                         setCounterZIndex(50);
                       }}
-                      className="lg:w-[4rem] sm:w-[4.6rem] md:w-[4.8rem] w-[2.5rem] select-none absolute h-auto z-[-1]"
-                      initial={{ y: -700 }}
-                      animate={{ y: 0 }}
                       transition={{
                         type: "spring",
                         stiffness: 300,
@@ -734,43 +754,77 @@ export const GameBoard = ({
       transition={{ type: "spring", stiffness: 100 }}
       className="z-20 flex flex-col items-center lg:flex-row lg:pr-12"
     >
-      <div className="flex justify-between mb-[1.5rem] lg:mb-0 w-screen lg:w-auto px-5">
-        <div>{isPhone && <Player pNumber={1} score={player1Score} />}</div>
-        <div>{isPhone && <Player pNumber={2} score={player2Score} />}</div>
-      </div>
-      {!isPhone && <Player pNumber={1} score={player1Score} />}
-      <div className="relative flex items-center justify-center">
-        <img
-          src={board_white}
-          className={`relative z-${counterZIndex} select-none px-4 w-[24.2rem] sm:w-[40rem] md:w-[43.5rem] md:mt-3 lg:w-[35rem] h-auto`}
-          alt="white board"
-        />
-        {renderGameBoard()}
-        <img
-          src={board_black}
-          className="absolute translate-y-1 z-[-1] top-50 left-50 select-none px-4 w-[24.2rem] sm:w-[40rem] md:w-[43.5rem] md:mt-3 lg:w-[35rem] h-auto"
-          alt="board shadow"
-        />
-        <Turn
-          online={online}
-          onlineOpponentReady={onlineOpponentReady}
-          time={time}
-          setTime={setTime}
-          playerTurn={playerTurn}
-          setPlayerTurn={setPlayerTurn}
-          player1Score={player1Score}
-          player2Score={player2Score}
-          winner={winner}
-          resetGame={resetGame}
-          open={open}
-          setOpen={setOpen}
-          dropCounter={dropCounter}
-          gameBoard={gameBoard}
-          canMove={canMove}
-          playerNumber={playerNumber}
-        />
-      </div>
-      {!isPhone && <Player pNumber={2} score={player2Score} />}
+      {/* Mobile view */}
+      {isPhone && (
+        <div className="flex justify-between mb-[1.5rem] lg:mb-0 w-screen lg:w-auto px-5">
+          <Player
+            pNumber={1}
+            score={player1Score}
+            online={online}
+            isCurrentPlayer={playerNumber === 1}
+            cpuMode={cpuMode}
+          />
+          <Player
+            pNumber={2}
+            score={player2Score}
+            online={online}
+            isCurrentPlayer={playerNumber === 2}
+            cpuMode={cpuMode}
+          />
+        </div>
+      )}
+
+      {/* Desktop view */}
+      {!isPhone && (
+        <>
+          <Player
+            pNumber={1}
+            score={player1Score}
+            online={online}
+            isCurrentPlayer={playerNumber === 1}
+            cpuMode={cpuMode}
+          />
+          <div className="relative flex items-center justify-center">
+            <img
+              src={board_white}
+              className={`relative z-${counterZIndex} select-none px-4 w-[24.2rem] sm:w-[40rem] md:w-[43.5rem] md:mt-3 lg:w-[35rem] h-auto`}
+              alt="white board"
+            />
+            {renderGameBoard()}
+            <img
+              src={board_black}
+              className="absolute translate-y-1 z-[-1] top-50 left-50 select-none px-4 w-[24.2rem] sm:w-[40rem] md:w-[43.5rem] md:mt-3 lg:w-[35rem] h-auto"
+              alt="board shadow"
+            />
+            <Turn
+              online={online}
+              onlineOpponentReady={onlineOpponentReady}
+              time={time}
+              setTime={setTime}
+              playerTurn={playerTurn}
+              setPlayerTurn={setPlayerTurn}
+              player1Score={player1Score}
+              player2Score={player2Score}
+              winner={winner}
+              resetGame={resetGame}
+              open={open}
+              setOpen={setOpen}
+              dropCounter={dropCounter}
+              gameBoard={gameBoard}
+              canMove={canMove}
+              playerNumber={playerNumber}
+              cpuMode={cpuMode}
+            />
+          </div>
+          <Player
+            pNumber={2}
+            score={player2Score}
+            online={online}
+            isCurrentPlayer={playerNumber === 2}
+            cpuMode={cpuMode}
+          />
+        </>
+      )}
     </motion.div>
   );
 };

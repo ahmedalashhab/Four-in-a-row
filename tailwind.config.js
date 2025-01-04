@@ -25,10 +25,15 @@ module.exports = {
             opacity: "1",
           },
         },
+        "winning-counter": {
+          "0%, 100%": { transform: "scale(1)", filter: "brightness(1)" },
+          "50%": { transform: "scale(1.1)", filter: "brightness(1.2)" },
+        },
       },
       animation: {
         "winner-announcement":
           "winner-announcement 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
+        "winning-counter": "winning-counter 1s ease-in-out infinite",
       },
     },
   },

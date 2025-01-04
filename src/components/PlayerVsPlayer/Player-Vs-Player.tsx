@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { useWindowSize } from "react-use";
 import { auth, gameService } from "../../firebase";
 import type { GamePlayer, GameRoom } from "../../types/User.types";
-import { checkWin } from "../../utils/boardUtils";
 import { GameBoard } from "../Shared/GameBoard";
 import { Nav } from "../Shared/Nav";
 import { PreGameModal } from "./PreGameModal";
@@ -37,6 +36,50 @@ interface ConfettiConfig {
   initialVelocityY: number;
   spread: number;
 }
+
+const ensureValidBoard = (boardData: any): (string | null)[][] => {
+  // Initialize empty board with null values explicitly
+  const board = Array(6)
+    .fill(null)
+    .map(() => Array(7).fill(null));
+
+  // If boardData is already a 2D array, normalize it
+  if (
+    Array.isArray(boardData) &&
+    boardData.length === 6 &&
+    boardData.every((row) => Array.isArray(row) && row.length === 7)
+  ) {
+    return boardData.map((row: (string | null | undefined)[]) =>
+      row.map((cell: string | null | undefined) =>
+        cell === undefined ? null : cell,
+      ),
+    );
+  }
+
+  // If boardData is an object (Firebase format), reconstruct the board
+  if (boardData && typeof boardData === "object") {
+    Object.entries(boardData).forEach(([rowIndex, rowData]) => {
+      if (rowData && typeof rowData === "object") {
+        Object.entries(rowData as Record<string, string>).forEach(
+          ([colIndex, value]) => {
+            const row = parseInt(rowIndex);
+            const col = parseInt(colIndex);
+            if (!isNaN(row) && !isNaN(col) && row < 6 && col < 7) {
+              board[row][col] = value || null;
+            }
+          },
+        );
+      }
+    });
+  }
+
+  return board;
+};
+
+const isDraw = (board: (string | null)[][]): boolean => {
+  // Check if all cells are filled (no null values)
+  return board.every((row) => row.every((cell) => cell !== null));
+};
 
 export const PlayerVsPlayer = ({
   online = false,
@@ -80,6 +123,9 @@ export const PlayerVsPlayer = ({
     initialVelocityY: 30,
     spread: 90,
   });
+  const [winningPositions, setWinningPositions] = useState<
+    Array<[number, number]>
+  >([]);
 
   useEffect(() => {
     const isMobile = width < 768;
@@ -146,86 +192,47 @@ export const PlayerVsPlayer = ({
   }, [online, roomId, navigate]);
 
   useEffect(() => {
-    if (!gameRoom) return;
+    if (!online || !gameRoom?.board) return;
 
-    console.log("🎮 Received room update:", {
-      board: gameRoom.board,
-      currentTurn: gameRoom.currentTurn,
-      status: gameRoom.status,
-      lastMove: gameRoom.lastMove,
-    });
+    const validBoard = ensureValidBoard(gameRoom.board);
+    setGameBoard(validBoard);
 
-    const updateScores = (currentPlayer: string) => {
-      if (currentPlayer === "PLAYER 1") {
-        setPlayer1Score((prev) => prev + 1);
-      } else {
-        setPlayer2Score((prev) => prev + 1);
-      }
-    };
+    // Update turn state based on gameRoom state
+    const currentTurn = `PLAYER ${gameRoom.currentTurn}`;
+    setPlayerTurn(currentTurn);
 
-    // Convert board from object to array if needed
-    if (gameRoom.board) {
-      let validBoard: (string | null)[][];
+    // Check for win if there's a last move
+    if (gameRoom.lastMove) {
+      const { row, col, player } = gameRoom.lastMove;
+      const winPositions = checkWin(validBoard, row, col, `PLAYER ${player}`);
 
-      if (Array.isArray(gameRoom.board)) {
-        validBoard = gameRoom.board;
-      } else {
-        // Convert object format to 2D array
-        validBoard = Array(6)
-          .fill(null)
-          .map(() => Array(7).fill(null));
-
-        // Type guard to ensure board is an object with string keys
-        const board = gameRoom.board as {
-          [key: string]: { [key: string]: string | null };
-        };
-
-        Object.entries(board).forEach(([row, cols]) => {
-          if (cols && typeof cols === "object") {
-            Object.entries(cols as { [key: string]: string | null }).forEach(
-              ([col, value]) => {
-                validBoard[parseInt(row)][parseInt(col)] = value;
-              },
-            );
-          }
-        });
-      }
-
-      console.log("🎮 Setting game board:", validBoard);
-      setGameBoard(validBoard);
-
-      // Check for win after board update if there was a last move
-      if (gameRoom.lastMove && typeof gameRoom.lastMove.row === "number") {
-        const { row, col, player } = gameRoom.lastMove;
-        const playerToken = `PLAYER ${player}`;
-
-        console.log("🎮 Checking win condition for last move:", {
-          row,
-          col,
-          playerToken,
-        });
-
-        const hasWon = checkWin(validBoard, row, col, playerToken);
-
-        if (hasWon) {
-          console.log("🎮 Win detected for player:", playerToken);
-          setWinner(playerToken);
-          setLastGameWinner(playerToken);
-          updateScores(playerToken);
-
-          // Trigger win animations with cleanup
-          setShowConfetti(true);
-          const timer = setTimeout(() => {
-            setShowConfetti(false);
-          }, 5000);
-
-          return () => clearTimeout(timer);
+      if (winPositions) {
+        setWinner(`PLAYER ${player}`);
+        setLastGameWinner(`PLAYER ${player}`);
+        setWinningPositions(winPositions);
+        if (player === 1) {
+          setPlayer1Score((prev) => prev + 1);
+        } else {
+          setPlayer2Score((prev) => prev + 1);
         }
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000);
       }
     }
 
-    setPlayerTurn(`PLAYER ${gameRoom.currentTurn}`);
-  }, [gameRoom?.board, gameRoom?.currentTurn, gameRoom?.lastMove]);
+    // Check for draw condition
+    if (!winner && isDraw(validBoard)) {
+      setWinner("NOBODY");
+    }
+
+    // Only update canMove if the prop is provided
+    if (setCanMove) {
+      const isPlayerTurn =
+        (playerNumber === 1 && gameRoom.currentTurn === 1) ||
+        (playerNumber === 2 && gameRoom.currentTurn === 2);
+      setCanMove(isPlayerTurn);
+    }
+  }, [gameRoom?.board, gameRoom?.lastMove, gameRoom?.currentTurn]);
 
   useEffect(() => {
     if (!online || !roomId) return;
@@ -422,6 +429,50 @@ export const PlayerVsPlayer = ({
     }
   }, [playerTurn, playerNumber, online]);
 
+  const checkWin = (
+    board: (string | null)[][],
+    row: number,
+    col: number,
+    player: string,
+  ): Array<[number, number]> | false => {
+    const directions = [
+      [0, 1], // horizontal
+      [1, 0], // vertical
+      [1, 1], // diagonal right
+      [1, -1], // diagonal left
+    ];
+
+    for (const [dx, dy] of directions) {
+      const positions: Array<[number, number]> = [];
+      let count = 0;
+
+      // Check in both directions
+      for (let i = -3; i <= 3; i++) {
+        const newRow = row + i * dx;
+        const newCol = col + i * dy;
+
+        if (
+          newRow >= 0 &&
+          newRow < 6 &&
+          newCol >= 0 &&
+          newCol < 7 &&
+          board[newRow][newCol] === player
+        ) {
+          count++;
+          positions.push([newRow, newCol]);
+          if (count === 4) {
+            return positions;
+          }
+        } else {
+          count = 0;
+          positions.length = 0;
+        }
+      }
+    }
+
+    return false;
+  };
+
   const handleMove = async (row: number, col: number) => {
     try {
       // For online mode
@@ -457,10 +508,16 @@ export const PlayerVsPlayer = ({
       setPlayerNumber(nextPlayerNumber);
 
       // Check for win
-      const hasWon = checkWin(newBoard, row, col, `PLAYER ${playerNumber}`);
-      if (hasWon) {
+      const winPositions = checkWin(
+        newBoard,
+        row,
+        col,
+        `PLAYER ${playerNumber}`,
+      );
+      if (winPositions) {
         setWinner(`PLAYER ${playerNumber}`);
         setLastGameWinner(`PLAYER ${playerNumber}`);
+        setWinningPositions(winPositions);
         if (playerNumber === 1) {
           setPlayer1Score((prev) => prev + 1);
         } else {
@@ -475,6 +532,7 @@ export const PlayerVsPlayer = ({
   };
 
   const playAgain = async () => {
+    setWinningPositions([]); // Reset winning positions
     const newBoard = Array(6)
       .fill(null)
       .map(() => Array(7).fill(null));
@@ -499,6 +557,7 @@ export const PlayerVsPlayer = ({
   };
 
   const restartGame = async () => {
+    setWinningPositions([]); // Reset winning positions
     const newBoard = Array(6)
       .fill(null)
       .map(() => Array(7).fill(null));
@@ -632,28 +691,6 @@ export const PlayerVsPlayer = ({
           />
         )}
 
-        {winner && (
-          <div className="fixed inset-0 flex items-center justify-center z-40 pointer-events-none px-4">
-            <div className="bg-white rounded-[20px] p-4 sm:p-6 md:p-8 border-[3px] border-black shadow-mainCard w-full max-w-[90%] sm:max-w-[400px] mx-auto">
-              <div
-                className={`
-                  text-3xl sm:text-4xl md:text-5xl lg:text-6xl
-                  font-bold text-black 
-                  animate-winner-announcement 
-                  text-center
-                  ${
-                    winner === `PLAYER ${playerNumber}`
-                      ? "text-[#FD6687]"
-                      : "text-[#FFCE67]"
-                  }
-                `}
-              >
-                {winner === `PLAYER ${playerNumber}` ? "YOU WIN!" : "YOU LOST!"}
-              </div>
-            </div>
-          </div>
-        )}
-
         <Nav
           restartGame={restartGame}
           open={open}
@@ -691,6 +728,8 @@ export const PlayerVsPlayer = ({
           canMove={canMove}
           setCanMove={setCanMove}
           playerNumber={playerNumber}
+          winningPositions={winningPositions}
+          setWinningPositions={setWinningPositions}
         />
 
         {online && roomId && gameRoom && gameRoom.status === "waiting" && (

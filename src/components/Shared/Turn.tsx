@@ -20,6 +20,7 @@ interface TurnProps {
   gameBoard: (string | null)[][];
   canMove?: boolean;
   playerNumber?: 1 | 2;
+  cpuMode?: boolean;
 }
 
 export const Turn = ({
@@ -39,6 +40,7 @@ export const Turn = ({
   gameBoard,
   canMove,
   playerNumber,
+  cpuMode,
 }: TurnProps) => {
   // generate a random number between 1 and 7 then check if the move is valid
   const [randomNum, setRandomNum] = useState<number>(0);
@@ -92,21 +94,21 @@ export const Turn = ({
   }, [playerTurn, online, playerNumber, canMove]);
 
   const getTurnText = () => {
-    if (!online) {
-      return `${playerTurn}'S TURN`;
+    if (online) {
+      if (winner) {
+        return "";
+      }
+      const isPlayerTurn =
+        (playerNumber === 1 && playerTurn === "PLAYER 1") ||
+        (playerNumber === 2 && playerTurn === "PLAYER 2");
+      return isPlayerTurn && canMove ? "YOUR TURN" : "AWAITING OPPONENT";
     }
 
-    // Add strict validation for online play
-    if (winner) {
-      return "";
+    if (cpuMode) {
+      return playerTurn === "PLAYER 1" ? "YOUR TURN" : "CPU'S TURN";
     }
 
-    // Only show "YOUR TURN" if it's actually the player's turn AND they can move
-    const isPlayerTurn =
-      (playerNumber === 1 && playerTurn === "PLAYER 1") ||
-      (playerNumber === 2 && playerTurn === "PLAYER 2");
-
-    return isPlayerTurn && canMove ? "YOUR TURN" : "AWAITING OPPONENT";
+    return `${playerTurn}'S TURN`;
   };
 
   return (
@@ -117,13 +119,25 @@ export const Turn = ({
             className={`lg:h-[10rem] lg:w-[18rem] w-[17.8rem] h-[10rem] bg-white border-2 border-black shadow-mainCard rounded-[20px] flex justify-center relative font-main font-bold"`}
           >
             <div className="flex flex-col justify-center items-center font-bold">
-              <span className="text-[16px]">{winner}</span>
+              <span className="text-[16px]">
+                {online
+                  ? winner === `PLAYER ${playerNumber}`
+                    ? "YOU"
+                    : "YOU"
+                  : winner}
+              </span>
               <div className="h-16 flex items-center">
-                <span className="text-[56px]">WINS</span>
+                <span className="text-[56px]">
+                  {online
+                    ? winner === `PLAYER ${playerNumber}`
+                      ? "WIN!"
+                      : "LOSE!"
+                    : "WINS"}
+                </span>
               </div>
               <button
                 className="flex justify-center text-[16px] items-center bg-[#5C2DD5] px-6 py-2 rounded-[20px]
-              text-white hover:brightness-125 transition-all ease-in-out hover:-translate-y-1 hover:scale-110 duration-300"
+                text-white hover:brightness-125 transition-all ease-in-out hover:-translate-y-1 hover:scale-110 duration-300"
                 onClick={resetGame}
               >
                 PLAY AGAIN

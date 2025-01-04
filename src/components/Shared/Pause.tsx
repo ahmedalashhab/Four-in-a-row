@@ -75,22 +75,24 @@ const Pause = ({
           open ? "scale-100 opacity-100" : "scale-95 opacity-0"
         } bg-[#7945FF] w-[80%] lg:w-[30rem] rounded-[40px] flex flex-col items-center py-[30px] gap-4 shadow-mainCard border-[3px] border-black transition-all duration-300 ease-in-out`}
       >
-        <h1 className="text-white text-[3.5rem] font-bold">PAUSE</h1>
+        <h1 className="text-white text-[3.5rem] font-bold select-none">
+          PAUSE
+        </h1>
         <button
           onClick={handleContinue}
-          className="bg-white w-[80%] h-[4rem] rounded-[20px] border-[3px] border-black font-bold text-[1.5rem] shadow-mainCard hover:translate-y-[-4px] transition-all"
+          className="bg-white w-[80%] h-[4rem] rounded-[20px] border-[3px] border-black font-bold text-[1.5rem] shadow-mainCard hover:translate-y-[-4px] transition-all select-none"
         >
           CONTINUE GAME
         </button>
         <button
           onClick={handleRestart}
-          className="bg-white w-[80%] h-[4rem] rounded-[20px] border-[3px] border-black font-bold text-[1.5rem] shadow-mainCard hover:translate-y-[-4px] transition-all"
+          className="bg-white w-[80%] h-[4rem] rounded-[20px] border-[3px] border-black font-bold text-[1.5rem] shadow-mainCard hover:translate-y-[-4px] transition-all select-none"
         >
           RESTART
         </button>
         <button
           onClick={handleQuit}
-          className="bg-[#FD6687] w-[80%] h-[4rem] rounded-[20px] border-[3px] border-black font-bold text-white text-[1.5rem] shadow-mainCard hover:translate-y-[-4px] transition-all"
+          className="bg-[#FD6687] w-[80%] h-[4rem] rounded-[20px] border-[3px] border-black font-bold text-white text-[1.5rem] shadow-mainCard hover:translate-y-[-4px] transition-all select-none"
         >
           QUIT GAME
         </button>
