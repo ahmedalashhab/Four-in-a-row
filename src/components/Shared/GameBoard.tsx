@@ -461,6 +461,7 @@ export const GameBoard = ({
   useEffect(() => {
     // whenever gameBoard changes, update the local board
     setLocalBoard(gameBoard);
+    console.log("🎮 [GAMEBOARD] Gameboard changed:", gameBoard);
     // check if the gameBoard is completely empty
     if (gameBoard.every((row) => row.every((cell) => cell === null))) {
       setWinner("");
@@ -560,7 +561,11 @@ export const GameBoard = ({
 
   function isDraw(board: (string | null)[][]): boolean {
     // Flatten the board and check if any cell is null
-    return !board.flat().some((cell) => cell === null);
+    const isFull = !board.flat().some((cell) => cell === null);
+    if (isFull) {
+      console.log("🎮 [DRAW] Board is full:", board.flat());
+    }
+    return isFull;
   }
 
   function getBestMove(board: (string | null)[][], depth: number): number {
