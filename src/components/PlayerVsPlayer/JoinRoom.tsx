@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import back from "../../assets/images/back.svg";
@@ -18,6 +19,53 @@ export const JoinRoom = () => {
   const [joiningRoom, setJoiningRoom] = useState<string | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const pageTransitionVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 1000 : -1000,
+      opacity: 0,
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction: number) => ({
+      zIndex: 0,
+      x: direction < 0 ? 1000 : -1000,
+      opacity: 0,
+    }),
+  };
+
+  const [pageDirection, setPageDirection] = useState(0);
+
+  const buttonBaseClasses = `
+    px-4 h-[3rem] rounded-[20px] border-[3px] border-black shadow-mainCard
+    font-bold text-[1rem]
+    transition-all
+    flex items-center justify-center
+  `;
+
+  const buttonActiveClasses = `
+    ${buttonBaseClasses}
+    bg-[#FFCE67] hover:bg-[#FFC04D] hover:translate-y-[-4px]
+  `;
+
+  const buttonDisabledClasses = `
+    ${buttonBaseClasses}
+    bg-gray-200 cursor-not-allowed
+    border-opacity-50
+  `;
+
+  const handleNextPage = () => {
+    setPageDirection(1);
+    setCurrentPage((prev) => prev + 1);
+  };
+
+  const handlePrevPage = () => {
+    setPageDirection(-1);
+    setCurrentPage((prev) => prev - 1);
+  };
 
   const fetchRooms = () => {
     setRefreshing(true);
@@ -106,28 +154,10 @@ export const JoinRoom = () => {
   const renderPagination = () => {
     if (totalPages <= 1) return null;
 
-    const buttonBaseClasses = `
-      px-4 h-[3rem] rounded-[20px] border-[3px] border-black shadow-mainCard
-      font-bold text-[1rem]
-      transition-all
-      flex items-center justify-center
-    `;
-
-    const buttonActiveClasses = `
-      ${buttonBaseClasses}
-      bg-[#FFCE67] hover:bg-[#FFC04D] hover:translate-y-[-4px]
-    `;
-
-    const buttonDisabledClasses = `
-      ${buttonBaseClasses}
-      bg-gray-200 cursor-not-allowed
-      border-opacity-50
-    `;
-
     return (
       <div className="flex justify-center gap-3 mt-4">
         <button
-          onClick={() => setCurrentPage(currentPage - 1)}
+          onClick={handlePrevPage}
           disabled={currentPage === 1}
           className={
             currentPage === 1 ? buttonDisabledClasses : buttonActiveClasses
@@ -136,7 +166,10 @@ export const JoinRoom = () => {
           PREV
         </button>
 
-        <div
+        <motion.div
+          key={currentPage}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
           className="
             w-[3rem] h-[3rem] rounded-[20px] border-[3px] border-black shadow-mainCard
             font-bold text-[1rem] bg-[#5C2DD5] text-white
@@ -144,10 +177,10 @@ export const JoinRoom = () => {
           "
         >
           {currentPage}
-        </div>
+        </motion.div>
 
         <button
-          onClick={() => setCurrentPage(currentPage + 1)}
+          onClick={handleNextPage}
           disabled={currentPage === totalPages}
           className={
             currentPage === totalPages
@@ -216,37 +249,102 @@ export const JoinRoom = () => {
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                {getPaginatedRooms().map((room) => (
-                  <button
-                    key={room.id}
-                    onClick={() => handleJoinRoom(room.id)}
-                    className="bg-[#D8DCFF] p-3 rounded-[20px] border-[3px] border-black shadow-mainCard hover:translate-y-[-4px] transition-all w-full text-left"
+                <AnimatePresence
+                  initial={false}
+                  custom={pageDirection}
+                  mode="wait"
+                >
+                  <motion.div
+                    key={currentPage}
+                    custom={pageDirection}
+                    variants={pageTransitionVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                      x: { type: "spring", stiffness: 300, damping: 30 },
+                      opacity: { duration: 0.2 },
+                    }}
                   >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <div className="font-bold">Room {room.id}</div>
-                        <div className="text-xs">
-                          Host: {room.players[0]?.displayName || "Anonymous"}
-                        </div>
-                        <div className="text-xs text-gray-600">
-                          Created {formatTimeAgo(room.createdAt)}
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        {joiningRoom === room.id ? (
-                          <div className="bg-gray-500 text-white px-2 py-0.5 rounded-full text-xs">
-                            Joining...
+                    <div className="flex flex-col gap-2">
+                      {getPaginatedRooms().map((room) => (
+                        <motion.button
+                          key={room.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.2 }}
+                          onClick={() => handleJoinRoom(room.id)}
+                          className="bg-[#D8DCFF] p-3 rounded-[20px] border-[3px] border-black shadow-mainCard hover:translate-y-[-4px] transition-all w-full text-left"
+                        >
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <div className="font-bold">Room {room.id}</div>
+                              <div className="text-xs">
+                                Host:{" "}
+                                {room.players[0]?.displayName || "Anonymous"}
+                              </div>
+                              <div className="text-xs text-gray-600">
+                                Created {formatTimeAgo(room.createdAt)}
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end">
+                              {joiningRoom === room.id ? (
+                                <div className="bg-gray-500 text-white px-2 py-0.5 rounded-full text-xs">
+                                  Joining...
+                                </div>
+                              ) : (
+                                <div className="bg-green-500 text-white px-2 py-0.5 rounded-full text-xs">
+                                  Available
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        ) : (
-                          <div className="bg-green-500 text-white px-2 py-0.5 rounded-full text-xs">
-                            Available
-                          </div>
-                        )}
-                      </div>
+                        </motion.button>
+                      ))}
                     </div>
-                  </button>
-                ))}
-                {rooms.length > ROOMS_PER_PAGE && renderPagination()}
+                  </motion.div>
+                </AnimatePresence>
+
+                {rooms.length > ROOMS_PER_PAGE && (
+                  <div className="flex justify-center gap-3 mt-4">
+                    <button
+                      onClick={handlePrevPage}
+                      disabled={currentPage === 1}
+                      className={
+                        currentPage === 1
+                          ? buttonDisabledClasses
+                          : buttonActiveClasses
+                      }
+                    >
+                      PREV
+                    </button>
+
+                    <motion.div
+                      key={currentPage}
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="
+                        w-[3rem] h-[3rem] rounded-[20px] border-[3px] border-black shadow-mainCard
+                        font-bold text-[1rem] bg-[#5C2DD5] text-white
+                        flex items-center justify-center
+                      "
+                    >
+                      {currentPage}
+                    </motion.div>
+
+                    <button
+                      onClick={handleNextPage}
+                      disabled={currentPage === totalPages}
+                      className={
+                        currentPage === totalPages
+                          ? buttonDisabledClasses
+                          : buttonActiveClasses
+                      }
+                    >
+                      NEXT
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
