@@ -8,7 +8,7 @@ export default class GameRoom implements Party.Server {
   gameState: GameState = {
     board: Array(6)
       .fill(null)
-      .map(() => Array(7).fill(null)),
+      .map(() => Array(7).fill(0)),
     playerTurn: "PLAYER 1",
     player1Score: 0,
     player2Score: 0,

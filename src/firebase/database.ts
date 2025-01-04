@@ -21,7 +21,7 @@ export const gameService = {
       },
       board: Array(6)
         .fill(null)
-        .map(() => Array(7).fill(null)),
+        .map(() => Array(7).fill(0)),
       time: 30,
     };
 

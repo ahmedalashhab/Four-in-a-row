@@ -57,18 +57,18 @@ interface MoveMessage {
 const createEmptyBoard = () =>
   Array(6)
     .fill(null)
-    .map(() => Array(7).fill(null));
+    .map(() => Array(7).fill(0));
 
 const ensureValidBoard = (board: any): (string | null)[][] => {
   if (!board || !Array.isArray(board)) {
     return Array(6)
       .fill(null)
-      .map(() => Array(7).fill(null));
+      .map(() => Array(7).fill(0));
   }
 
   if (Array.isArray(board[0])) {
     return board.map((row) =>
-      Array.isArray(row) ? [...row] : Array(7).fill(null),
+      Array.isArray(row) ? [...row] : Array(7).fill(0),
     );
   }
 
@@ -76,10 +76,10 @@ const ensureValidBoard = (board: any): (string | null)[][] => {
     .fill(null)
     .map((_, i) =>
       Array(7)
-        .fill(null)
+        .fill(0)
         .map((_, j) => {
           const rowData = board[i];
-          return rowData && rowData[j] ? rowData[j] : null;
+          return rowData && rowData[j] ? rowData[j] : 0;
         }),
     );
 };
@@ -220,7 +220,7 @@ export const GameBoard = ({
   const [localBoard, setLocalBoard] = useState<(string | null)[][]>(() =>
     Array(6)
       .fill(null)
-      .map(() => Array(7).fill(null)),
+      .map(() => Array(7).fill(0)),
   );
 
   // Keep track of last processed move to prevent duplicates
@@ -271,7 +271,6 @@ export const GameBoard = ({
     {},
   );
 
-  // Modify the dropCounter function
   const dropCounter = async (columnIndex: number) => {
     console.log("🎮 [DROP] Attempting move:", {
       columnIndex,
@@ -297,7 +296,7 @@ export const GameBoard = ({
         let retryCount = 0;
         let moveSuccessful = false;
 
-        // Update local board immediately for responsiveness
+        // TODO: change this to use the playerNumber
         const newBoard = localBoard.map((row) => [...row]);
         newBoard[emptyCellRowIndex][columnIndex] = `PLAYER ${playerNumber}`;
         setLocalBoard(newBoard);

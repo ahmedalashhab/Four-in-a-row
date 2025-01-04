@@ -54,7 +54,7 @@ export const PlayerVsPlayer = ({
   const [gameBoard, setGameBoard] = useState<(string | null)[][]>(() =>
     Array(6)
       .fill(null)
-      .map(() => Array(7).fill(null)),
+      .map(() => Array(7).fill(0)),
   );
   const [open, setOpen] = useState<boolean>(false);
   const [lastGameWinner, setLastGameWinner] = useState<string | null>(null);
@@ -173,7 +173,7 @@ export const PlayerVsPlayer = ({
         // Convert object format to 2D array
         validBoard = Array(6)
           .fill(null)
-          .map(() => Array(7).fill(null));
+          .map(() => Array(7).fill(0));
 
         // Type guard to ensure board is an object with string keys
         const board = gameRoom.board as {
@@ -308,7 +308,7 @@ export const PlayerVsPlayer = ({
           ? room.board
           : Array(6)
               .fill(null)
-              .map(() => Array(7).fill(null));
+              .map(() => Array(7).fill(0));
 
         setGameBoard(normalizedBoard);
         console.log("Updated game board:", normalizedBoard);
@@ -434,7 +434,7 @@ export const PlayerVsPlayer = ({
   const playAgain = async () => {
     const newBoard = Array(6)
       .fill(null)
-      .map(() => Array(7).fill(null));
+      .map(() => Array(7).fill(0));
     const newState = {
       board: newBoard,
       time: 30,
@@ -458,7 +458,7 @@ export const PlayerVsPlayer = ({
   const restartGame = async () => {
     const newBoard = Array(6)
       .fill(null)
-      .map(() => Array(7).fill(null));
+      .map(() => Array(7).fill(0));
     const newState = {
       board: newBoard,
       playerTurn: "PLAYER 1",
@@ -522,7 +522,7 @@ export const PlayerVsPlayer = ({
 
     const newBoard = Array(6)
       .fill(null)
-      .map(() => Array(7).fill(null));
+      .map(() => Array(7).fill(0));
     await gameService.updateGameState(roomId, {
       board: newBoard,
       currentTurn: lastGameWinner === "PLAYER 1" ? 1 : 2,

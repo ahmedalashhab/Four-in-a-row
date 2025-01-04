@@ -36,7 +36,7 @@ interface ServerMessage {
 const INITIAL_GAME_STATE: GameState = {
   board: Array(6)
     .fill(null)
-    .map(() => Array(7).fill(null)),
+    .map(() => Array(7).fill(0)),
   playerTurn: "PLAYER 1",
   winner: null,
   player1Score: 0,

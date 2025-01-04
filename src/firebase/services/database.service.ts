@@ -24,7 +24,7 @@ const convertBoardToArray = (boardData: any): (string | null)[][] => {
   // Initialize empty board
   const board = Array(6)
     .fill(null)
-    .map(() => Array(7).fill(null));
+    .map(() => Array(7).fill(0));
 
   console.log("🎮 [CONVERT] Converting board data:", boardData);
 
@@ -186,8 +186,8 @@ export const gameService = {
           .fill(null)
           .map((_, i) =>
             Array(7)
-              .fill(null)
-              .map((_, j) => room.board?.[i]?.[j] || null),
+              .fill(0)
+              .map((_, j) => room.board?.[i]?.[j] || 0),
           );
 
         const updatedRoom = {
@@ -355,7 +355,7 @@ export const gameService = {
             currentTurn: 1,
             board: Array(6)
               .fill(null)
-              .map(() => Array(7).fill(null)),
+              .map(() => Array(7).fill(0)),
             winner: null,
             lastMove: Date.now(),
           });

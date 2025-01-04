@@ -2,7 +2,7 @@
 export const createEmptyBoard = (): (string | null)[][] => {
   return Array(6)
     .fill(null)
-    .map(() => Array(7).fill(null));
+    .map(() => Array(7).fill(0));
 };
 
 // Helper function to check if a move is valid
