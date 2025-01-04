@@ -293,8 +293,9 @@ export const GameBoard = ({
         return;
       }
 
-      if (online) {
-        await handleMove(rowIndex, columnIndex);
+      if (online && roomId && playerNumber) {
+        // Ensure roomId is not null and playerNumber is properly typed
+        await handleMove(roomId, rowIndex, columnIndex, playerNumber as 1 | 2);
       } else {
         // Offline game logic
         if (onMove) {
@@ -665,12 +666,14 @@ export const GameBoard = ({
   }, [gameRoom?.board, gameRoom?.lastMove]);
 
   // Add the handleMove function
-  const handleMove = async (rowIndex: number, columnIndex: number) => {
+  const handleMove = async (
+    roomId: string,
+    rowIndex: number,
+    columnIndex: number,
+    playerNumber: 1 | 2, // Explicitly type as 1 | 2
+  ) => {
     try {
-      if (!roomId || !playerNumber) return;
-
-      // Update local board immediately for responsiveness
-      const newBoard = localBoard.map((row) => [...row]);
+      const newBoard = gameBoard.map((row) => [...row]);
       newBoard[rowIndex][columnIndex] = `PLAYER ${playerNumber}`;
       setLocalBoard(newBoard);
       setGameBoard(newBoard);
@@ -678,10 +681,9 @@ export const GameBoard = ({
       // Make the move in Firebase
       await gameService.makeMove(roomId, rowIndex, columnIndex, playerNumber);
 
-      // Check for win after successful move
+      // Check for win after successful move - but don't update scores here
       if (checkWin(newBoard, rowIndex, columnIndex)) {
         setWinner(`PLAYER ${playerNumber}`);
-        updateScores(`PLAYER ${playerNumber}`);
       }
       // Only check for draw if there's no winner
       else if (isDraw(newBoard)) {
