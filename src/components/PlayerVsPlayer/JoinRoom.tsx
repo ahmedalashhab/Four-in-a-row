@@ -6,6 +6,8 @@ import { useAuth } from "../../hooks/useAuth";
 import type { GamePlayer, GameRoom } from "../../types/User.types";
 import { AnimatedMenu, GameLinkButton } from "../Home/MainMenu";
 
+const ROOMS_PER_PAGE = 5;
+
 export const JoinRoom = () => {
   const [rooms, setRooms] = useState<GameRoom[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,6 +17,7 @@ export const JoinRoom = () => {
   const { user } = useAuth();
   const [joiningRoom, setJoiningRoom] = useState<string | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchRooms = () => {
     setRefreshing(true);
@@ -92,26 +95,92 @@ export const JoinRoom = () => {
     return `${Math.floor(seconds / 86400)} days ago`;
   };
 
+  const getPaginatedRooms = () => {
+    const startIndex = (currentPage - 1) * ROOMS_PER_PAGE;
+    const endIndex = startIndex + ROOMS_PER_PAGE;
+    return rooms.slice(startIndex, endIndex);
+  };
+
+  const totalPages = Math.ceil(rooms.length / ROOMS_PER_PAGE);
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    const buttonBaseClasses = `
+      px-4 h-[3rem] rounded-[20px] border-[3px] border-black shadow-mainCard
+      font-bold text-[1rem]
+      transition-all
+      flex items-center justify-center
+    `;
+
+    const buttonActiveClasses = `
+      ${buttonBaseClasses}
+      bg-[#FFCE67] hover:bg-[#FFC04D] hover:translate-y-[-4px]
+    `;
+
+    const buttonDisabledClasses = `
+      ${buttonBaseClasses}
+      bg-gray-200 cursor-not-allowed
+      border-opacity-50
+    `;
+
+    return (
+      <div className="flex justify-center gap-3 mt-4">
+        <button
+          onClick={() => setCurrentPage(currentPage - 1)}
+          disabled={currentPage === 1}
+          className={
+            currentPage === 1 ? buttonDisabledClasses : buttonActiveClasses
+          }
+        >
+          PREV
+        </button>
+
+        <div
+          className="
+            w-[3rem] h-[3rem] rounded-[20px] border-[3px] border-black shadow-mainCard
+            font-bold text-[1rem] bg-[#5C2DD5] text-white
+            flex items-center justify-center
+          "
+        >
+          {currentPage}
+        </div>
+
+        <button
+          onClick={() => setCurrentPage(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className={
+            currentPage === totalPages
+              ? buttonDisabledClasses
+              : buttonActiveClasses
+          }
+        >
+          NEXT
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="w-screen h-[100svh] bg-[#5C2DD5] justify-center items-center flex flex-1 overflow-hidden">
-      <AnimatedMenu>
+      <AnimatedMenu className="flex flex-col items-center justify-center">
         <div className="flex flex-col items-center justify-center">
-          <div className="grid-cols-2 mb-8">
-            <h3 className="text-white font-bold text-[56px] select-none">
+          <div className="grid-cols-2 mb-4">
+            <h3 className="text-white font-bold text-[40px] select-none">
               ROOMS
             </h3>
           </div>
 
-          <div className="flex flex-col gap-4 w-[21rem] lg:w-[25rem] mb-8">
+          <div className="flex flex-col gap-3 w-[21rem] lg:w-[25rem] mb-4">
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className={`flex items-center justify-center gap-2 bg-[#FFCE67] h-[4rem] rounded-[20px] border-[3px] border-black shadow-mainCard hover:translate-y-[-4px] transition-all ${
+              className={`flex items-center justify-center gap-2 bg-[#FFCE67] h-[3rem] rounded-[20px] border-[3px] border-black shadow-mainCard hover:translate-y-[-4px] transition-all ${
                 refreshing ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
               <svg
-                className={`w-6 h-6 ${refreshing ? "animate-spin" : ""}`}
+                className={`w-5 h-5 ${refreshing ? "animate-spin" : ""}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -123,7 +192,7 @@ export const JoinRoom = () => {
                   d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                 />
               </svg>
-              <span className="font-bold text-[1.25rem]">
+              <span className="font-bold text-[1rem]">
                 {refreshing ? "Refreshing..." : "Refresh Rooms"}
               </span>
             </button>
@@ -135,26 +204,28 @@ export const JoinRoom = () => {
             )}
 
             {loading ? (
-              <div className="flex justify-center items-center h-40">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+              <div className="flex justify-center items-center h-32">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white"></div>
               </div>
             ) : rooms.length === 0 ? (
-              <div className="bg-white text-center py-6 rounded-[20px] border-[3px] border-black shadow-mainCard">
-                <p className="text-xl font-bold mb-2">No rooms available</p>
-                <p className="text-gray-600">Create a room to start playing!</p>
+              <div className="bg-white text-center py-4 rounded-[20px] border-[3px] border-black shadow-mainCard">
+                <p className="text-lg font-bold mb-1">No rooms available</p>
+                <p className="text-gray-600 text-sm">
+                  Create a room to start playing!
+                </p>
               </div>
             ) : (
-              <div className="flex flex-col gap-3">
-                {rooms.map((room) => (
+              <div className="flex flex-col gap-2">
+                {getPaginatedRooms().map((room) => (
                   <button
                     key={room.id}
                     onClick={() => handleJoinRoom(room.id)}
-                    className="bg-[#D8DCFF] p-4 rounded-[20px] border-[3px] border-black shadow-mainCard hover:translate-y-[-4px] transition-all w-full text-left"
+                    className="bg-[#D8DCFF] p-3 rounded-[20px] border-[3px] border-black shadow-mainCard hover:translate-y-[-4px] transition-all w-full text-left"
                   >
                     <div className="flex justify-between items-center">
                       <div>
-                        <div className="font-bold text-lg">Room {room.id}</div>
-                        <div className="text-sm">
+                        <div className="font-bold">Room {room.id}</div>
+                        <div className="text-xs">
                           Host: {room.players[0]?.displayName || "Anonymous"}
                         </div>
                         <div className="text-xs text-gray-600">
@@ -163,11 +234,11 @@ export const JoinRoom = () => {
                       </div>
                       <div className="flex flex-col items-end">
                         {joiningRoom === room.id ? (
-                          <div className="bg-gray-500 text-white px-3 py-1 rounded-full text-sm">
+                          <div className="bg-gray-500 text-white px-2 py-0.5 rounded-full text-xs">
                             Joining...
                           </div>
                         ) : (
-                          <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm">
+                          <div className="bg-green-500 text-white px-2 py-0.5 rounded-full text-xs">
                             Available
                           </div>
                         )}
@@ -175,6 +246,7 @@ export const JoinRoom = () => {
                     </div>
                   </button>
                 ))}
+                {rooms.length > ROOMS_PER_PAGE && renderPagination()}
               </div>
             )}
           </div>
