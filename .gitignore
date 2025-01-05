@@ -15,8 +15,3 @@
 .DS_Store
 node_modules
 .prettierignore
-
-.env
-.env.local
-.env.development
-.env.production
