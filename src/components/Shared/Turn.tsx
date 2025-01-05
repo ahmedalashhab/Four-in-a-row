@@ -51,31 +51,33 @@ export const Turn = ({
   };
 
   useEffect(() => {
-    if (winner || open || (online && !canMove)) {
+    if (winner || open) {
       return;
     }
 
     const timer = setTimeout(() => {
-      !open &&
-        (online ? onlineOpponentReady && canMove : true) &&
+      if (!open && (online ? onlineOpponentReady : true)) {
         setTime((prevTime: number) => prevTime - 1);
+      }
     }, 1000);
 
     // When time is 0, make random move
     if (time === 0 && !open && !winner) {
-      let randomNum;
-      do {
-        randomNum = Math.floor(Math.random() * 7);
-      } while (!isValidMove(gameBoard, randomNum));
-      setRandomNum(randomNum);
-      handleClick();
+      if (!online) {
+        // Only handle CPU moves in offline mode
+        let randomNum;
+        do {
+          randomNum = Math.floor(Math.random() * 7);
+        } while (!isValidMove(gameBoard, randomNum));
+        setRandomNum(randomNum);
+        handleClick();
+      }
     }
 
-    // Cleanup
     return () => {
       clearTimeout(timer);
     };
-  }, [time, open, canMove, winner, online, onlineOpponentReady]);
+  }, [time, open, winner, online, onlineOpponentReady]);
 
   useEffect(() => {
     if (!online) {
@@ -83,15 +85,11 @@ export const Turn = ({
       return;
     }
 
-    // Only reset timer when it becomes the player's turn
-    const isPlayerTurn =
-      (playerNumber === 1 && playerTurn === "PLAYER 1") ||
-      (playerNumber === 2 && playerTurn === "PLAYER 2");
-
-    if (isPlayerTurn && canMove) {
+    // In online mode, reset timer on turn change
+    if (onlineOpponentReady) {
       setTime(30);
     }
-  }, [playerTurn, online, playerNumber, canMove]);
+  }, [playerTurn, online, onlineOpponentReady]);
 
   const getTurnText = () => {
     if (online) {

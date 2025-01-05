@@ -401,35 +401,39 @@ export const GameBoard = ({
       return <div>Loading game board...</div>;
     }
 
+    const canShowHover =
+      !winner &&
+      (!online || // Always show in offline mode
+        (online &&
+          canMove && // In online mode, only show when it's player's turn
+          ((playerNumber === 1 && playerTurn === "PLAYER 1") ||
+            (playerNumber === 2 && playerTurn === "PLAYER 2"))));
+
     return (
       <>
         <div className="absolute z-50 flex lg:ml-2 lg:mt-2 lg:pl-0">
           {localBoard[0].map((cell, j) => (
             <div
               key={j}
-              className="relative flex flex-col items-center mb-4 cursor-pointer lg:mb-8"
-              onMouseEnter={() => !winner && gameBoardWhiteHover(j)}
-              onMouseLeave={() => !winner && gameBoardWhiteHover(null)}
+              className={`relative flex flex-col items-center mb-4 lg:mb-8 ${
+                canShowHover ? "cursor-pointer" : "cursor-default"
+              }`}
+              onMouseEnter={() => canShowHover && gameBoardWhiteHover(j)}
+              onMouseLeave={() => canShowHover && gameBoardWhiteHover(null)}
               onClick={() => {
-                if (
-                  !winner &&
-                  (!cpuMode || playerTurn === "PLAYER 1") &&
-                  (!online || canMove)
-                ) {
+                if (canShowHover) {
                   dropCounter(j);
                 }
               }}
             >
-              {hoveredColumn === j &&
-                !isPhone &&
-                ((cpuMode && playerTurn === "PLAYER 1") || !cpuMode) && (
-                  <img
-                    src={playerTurn === "PLAYER 1" ? marker_red : marker_yellow}
-                    alt="marker"
-                    className={`lg:w-[3.5rem] w-[2rem] lg:h-auto select-none z-50 absolute top-0 lg:translate-y-[-4.5rem] 
+              {hoveredColumn === j && canShowHover && !isPhone && (
+                <img
+                  src={playerTurn === "PLAYER 1" ? marker_red : marker_yellow}
+                  alt="marker"
+                  className={`lg:w-[3.5rem] w-[2rem] lg:h-auto select-none z-50 absolute top-0 lg:translate-y-[-4.5rem] 
                   translate-y-[-3rem] lg:mr-1`}
-                  />
-                )}
+                />
+              )}
               {localBoard.map((row: any, i) => (
                 <div
                   key={i}
