@@ -280,7 +280,7 @@ export const JoinRoom = () => {
                       opacity: { duration: 0.1 },
                     }}
                   >
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 h-[30rem] overflow-y-auto">
                       {getPaginatedRooms().map((room) => (
                         <motion.button
                           key={room.id}
