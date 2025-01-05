@@ -9,6 +9,7 @@ import { SignInWithGoogle, SignOut } from "../../firebase/Firebase";
 import { gameService } from "../../firebase/services/database.service";
 import { useAuth } from "../../hooks/useAuth";
 import type { GamePlayer } from "../../types/User.types";
+import { debugError, debugLog } from "../../utils/debug";
 import { AnimatedMenu, GameLinkButton } from "../Home/MainMenu";
 
 interface SignInProps {
@@ -38,7 +39,7 @@ export const SignIn = ({ roomId, setRoomId }: SignInProps) => {
       await SignInWithGoogle();
     } catch (error) {
       setSignInError("Failed to sign in. Please try again.");
-      console.error("Sign in error:", error);
+      debugError("AUTH", "Sign in error", error);
     }
   };
 
@@ -51,7 +52,7 @@ export const SignIn = ({ roomId, setRoomId }: SignInProps) => {
     try {
       setIsCreatingRoom(true);
       setSignInError(null);
-      console.log("Creating room with user:", user);
+      debugLog("ROOMS", "Creating room with user", user);
 
       const player: GamePlayer = {
         uid: user.uid,
@@ -62,14 +63,14 @@ export const SignIn = ({ roomId, setRoomId }: SignInProps) => {
         score: 0,
       };
 
-      console.log("Attempting to create room with player:", player);
+      debugLog("ROOMS", "Attempting to create room with player", player);
       const newRoomId = await gameService.createRoom(player);
-      console.log("Room created successfully:", newRoomId);
+      debugLog("ROOMS", "Room created successfully", newRoomId);
 
       setRoomId(newRoomId);
       navigate(`/pvp/online/room/${newRoomId}`);
     } catch (error) {
-      console.error("Detailed error creating room:", error);
+      debugError("ROOMS", "Detailed error creating room", error);
       setSignInError(
         error instanceof Error ? error.message : "Failed to create room",
       );
@@ -95,16 +96,15 @@ export const SignIn = ({ roomId, setRoomId }: SignInProps) => {
       setRoomId(roomId);
       navigate(`/pvp/online/room/${roomId}`);
     } catch (error) {
-      console.error("Error joining room:", error);
+      debugError("ROOMS", "Error joining room", error);
     }
   };
 
   const handleSignOut = async () => {
     try {
       await SignOut();
-      // Optionally handle any cleanup needed after sign out
     } catch (error) {
-      console.error("Error signing out:", error);
+      debugError("AUTH", "Error signing out", error);
       setSignInError("Failed to sign out. Please try again.");
     }
   };

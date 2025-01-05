@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { get, getDatabase, onValue, ref } from "firebase/database";
+import { debugError, debugLog } from "../../utils/debug";
 
 export const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -13,7 +14,7 @@ export const firebaseConfig = {
   measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
 };
 
-console.log("Initializing Firebase...");
+debugLog("FIREBASE", "Initializing Firebase...");
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const database = getDatabase(app);
@@ -22,9 +23,9 @@ const database = getDatabase(app);
 const connectedRef = ref(database, ".info/connected");
 onValue(connectedRef, (snap) => {
   if (snap.val() === true) {
-    console.log("🟢 Successfully connected to Firebase Database");
+    debugLog("FIREBASE", "Successfully connected to Firebase Database");
   } else {
-    console.log("🔴 Disconnected from Firebase Database");
+    debugError("FIREBASE", "Disconnected from Firebase Database");
   }
 });
 
@@ -32,11 +33,11 @@ onValue(connectedRef, (snap) => {
 const testRef = ref(database, "rooms");
 get(testRef)
   .then((snapshot) => {
-    console.log("🟢 Initial database access test successful");
-    console.log("🟢 Current rooms data:", snapshot.val());
+    debugLog("FIREBASE", "Initial database access test successful");
+    debugLog("FIREBASE", "Current rooms data", snapshot.val());
   })
   .catch((error) => {
-    console.error("🔴 Initial database access test failed:", error);
+    debugError("FIREBASE", "Initial database access test failed", error);
   });
 
 export { app, auth, database };

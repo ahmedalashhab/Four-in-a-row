@@ -8,6 +8,7 @@ import {
   update,
 } from "firebase/database";
 import type { GamePlayer, GameRoom } from "../../types/User.types";
+import { debugError, debugLog } from "../../utils/debug";
 import { database } from "../config/index";
 
 function generateRoomId(): string {
@@ -68,7 +69,7 @@ const convertBoardToArray = (boardData: any): (string | null)[][] => {
 export const gameService = {
   // Create a new game room
   async createRoom(host: GamePlayer): Promise<string> {
-    console.log("🎮 [CREATE] Creating room with host:", host);
+    debugLog("ROOMS", "Creating room with host", host);
 
     const roomId = generateRoomId();
     const roomRef = ref(database, `rooms/${roomId}`);
@@ -94,22 +95,21 @@ export const gameService = {
 
     try {
       await set(roomRef, room);
-      console.log("🎮 [CREATE] Room created successfully:", roomId);
+      debugLog("ROOMS", "Room created successfully", roomId);
       return roomId;
     } catch (error) {
-      console.error("🔴 [CREATE] Error creating room:", error);
+      debugError("ROOMS", "Error creating room", error);
       throw error;
     }
   },
 
   // Join an existing room
   async joinRoom(roomId: string, player: GamePlayer): Promise<void> {
-    console.log("🎮 [JOIN] Starting join process:", { roomId, player });
+    debugLog("ROOMS", "Starting join process", { roomId, player });
 
     const roomRef = ref(database, `rooms/${roomId}`);
 
     try {
-      // Use transaction to ensure atomic updates and prevent overwrites
       await runTransaction(roomRef, (currentData) => {
         if (!currentData) {
           throw new Error("Room not found");
@@ -117,26 +117,24 @@ export const gameService = {
 
         const room = currentData as GameRoom;
 
-        // Important: Check if we already have the correct number of players
         if (room.players.length === 2) {
-          console.log(
-            "🎮 [JOIN] Room already has 2 players, verifying player presence",
+          debugLog(
+            "ROOMS",
+            "Room already has 2 players, verifying player presence",
           );
-          // If the joining player is already in the room, don't modify anything
           if (room.players.some((p) => p.uid === player.uid)) {
             return room;
           }
           throw new Error("Room is full");
         }
 
-        // Preserve existing players and add the new one
         const updatedRoom = {
           ...room,
           players: [...room.players, { ...player, ready: false }],
           lastMove: Date.now(),
         };
 
-        console.log("🎮 [JOIN] Updating room with new player:", {
+        debugLog("ROOMS", "Updating room with new player", {
           existingPlayers: room.players,
           newPlayer: player,
           finalPlayers: updatedRoom.players,
@@ -145,21 +143,17 @@ export const gameService = {
         return updatedRoom;
       });
 
-      // Verify the update
       const verifySnapshot = await get(roomRef);
       const verifiedRoom = verifySnapshot.val() as GameRoom;
 
       if (!verifiedRoom.players.some((p) => p.uid === player.uid)) {
-        console.error("🔴 [JOIN] Player join verification failed");
+        debugError("ROOMS", "Player join verification failed");
         throw new Error("Failed to join room - verification failed");
       }
 
-      console.log(
-        "🎮 [JOIN] Successfully joined room, final state:",
-        verifiedRoom,
-      );
+      debugLog("ROOMS", "Successfully joined room, final state", verifiedRoom);
     } catch (error) {
-      console.error("🔴 [JOIN] Error joining room:", error);
+      debugError("ROOMS", "Error joining room", error);
       throw error;
     }
   },
@@ -169,7 +163,7 @@ export const gameService = {
     roomId: string,
     gameState: Partial<GameRoom>,
   ): Promise<void> {
-    console.log("🎮 [UPDATE] Updating game state:", { roomId, gameState });
+    debugLog("GAME", "Updating game state", { roomId, gameState });
 
     const roomRef = ref(database, `rooms/${roomId}`);
 
@@ -178,8 +172,6 @@ export const gameService = {
         if (!currentData) throw new Error("Room not found");
 
         const room = currentData as GameRoom;
-
-        // Always ensure board is properly structured as 2D array
         const currentBoard = Array(6)
           .fill(null)
           .map((_, i) =>
@@ -200,18 +192,18 @@ export const gameService = {
           },
         };
 
-        console.log("🎮 [UPDATE] New room state:", updatedRoom);
+        debugLog("GAME", "New room state", updatedRoom);
         return updatedRoom;
       });
     } catch (error) {
-      console.error("🔴 [UPDATE] Error updating game state:", error);
+      debugError("GAME", "Error updating game state", error);
       throw error;
     }
   },
 
   // Listen to room changes
   onRoomUpdate(roomId: string, callback: (room: GameRoom) => void): () => void {
-    console.log("🎮 [LISTEN] Setting up room listener for:", roomId);
+    debugLog("ROOMS", "Setting up room listener for", roomId);
 
     const roomRef = ref(database, `rooms/${roomId}`);
     let previousPlayers: GamePlayer[] = [];
@@ -219,22 +211,19 @@ export const gameService = {
     const unsubscribe = onValue(roomRef, (snapshot) => {
       if (snapshot.exists()) {
         const roomData = snapshot.val();
-
-        // Convert board data to proper 2D array
         const room: GameRoom = {
           ...roomData,
           board: convertBoardToArray(roomData.board),
         };
 
-        // Protect against player removal
         if (previousPlayers.length > room.players.length) {
-          console.warn("🚫 [LISTEN] Prevented potential player removal");
+          debugLog("ROOMS", "Prevented potential player removal");
           room.players = previousPlayers;
         } else {
           previousPlayers = [...room.players];
         }
 
-        console.log("🎮 [LISTEN] Room update received with board:", room.board);
+        debugLog("GAME", "Room update received with board", room.board);
         callback(room);
       }
     });
@@ -244,57 +233,56 @@ export const gameService = {
 
   // Add rooms listing functionality
   onRoomsUpdate(callback: (rooms: GameRoom[]) => void): () => void {
-    console.log("🔵 Setting up rooms listener...");
+    debugLog("ROOMS", "Setting up rooms listener...");
 
     const roomsRef = ref(database, "rooms");
-    console.log("🔵 Database reference:", roomsRef.toString());
+    debugLog("ROOMS", "Database reference", roomsRef.toString());
 
-    // Test immediate database access
     get(roomsRef)
       .then((snapshot) => {
-        console.log("🟢 Initial database test - Data:", snapshot.val());
+        debugLog("ROOMS", "Initial database test - Data", snapshot.val());
       })
       .catch((error) => {
-        console.error("🔴 Initial database test failed:", error);
+        debugError("ROOMS", "Initial database test failed", error);
       });
 
     const unsubscribe = onValue(
       roomsRef,
       (snapshot) => {
-        console.log("🟡 Received database update event");
+        debugLog("ROOMS", "Received database update event");
 
         if (!snapshot.exists()) {
-          console.log("🟡 No rooms found in snapshot");
+          debugLog("ROOMS", "No rooms found in snapshot");
           callback([]);
           return;
         }
 
         try {
           const roomsData = snapshot.val();
-          console.log("🟢 Raw rooms data:", roomsData);
+          debugLog("ROOMS", "Raw rooms data", roomsData);
 
           const roomsArray = Object.entries(roomsData).map(([id, data]) => {
-            console.log(`🟢 Processing room ${id}:`, data);
+            debugLog("ROOMS", `Processing room ${id}`, data);
             return {
               ...(data as Omit<GameRoom, "id">),
               id,
             };
           });
 
-          console.log("🟢 Converted rooms array:", roomsArray);
+          debugLog("ROOMS", "Converted rooms array", roomsArray);
           callback(roomsArray);
         } catch (error) {
-          console.error("🔴 Error processing rooms data:", error);
+          debugError("ROOMS", "Error processing rooms data", error);
           callback([]);
         }
       },
       (error) => {
-        console.error("🔴 Firebase listener error:", error);
+        debugError("ROOMS", "Firebase listener error", error);
       },
     );
 
     return () => {
-      console.log("🔵 Cleaning up rooms listener");
+      debugLog("ROOMS", "Cleaning up rooms listener");
       unsubscribe();
     };
   },
@@ -312,23 +300,19 @@ export const gameService = {
         for (const [roomId, room] of Object.entries(rooms)) {
           const typedRoom = room as GameRoom;
 
-          // Remove rooms that are:
-          // 1. Empty (no players)
-          // 2. Inactive for more than 30 minutes
-          // 3. In "waiting" status for more than 30 minutes
           if (
             typedRoom.players.length === 0 ||
             now - typedRoom.lastMove.timestamp > inactiveThreshold ||
             (typedRoom.status === "waiting" &&
               now - typedRoom.createdAt > inactiveThreshold)
           ) {
-            console.log(`Cleaning up inactive room: ${roomId}`);
+            debugLog("ROOMS", `Cleaning up inactive room: ${roomId}`);
             await remove(ref(database, `rooms/${roomId}`));
           }
         }
       }
     } catch (error) {
-      console.error("Error cleaning up inactive rooms:", error);
+      debugError("ROOMS", "Error cleaning up inactive rooms", error);
     }
   },
 
@@ -343,7 +327,7 @@ export const gameService = {
 
         if (updatedPlayers.length === 0) {
           // If no players left, remove the room completely
-          console.log(`Removing empty room: ${roomId}`);
+          debugLog("ROOMS", `Removing empty room: ${roomId}`);
           await remove(roomRef);
         } else {
           // Update the room with remaining players and reset game state
@@ -360,7 +344,7 @@ export const gameService = {
         }
       }
     } catch (error) {
-      console.error(`Error leaving room ${roomId}:`, error);
+      debugError("ROOMS", `Error leaving room`, error);
       throw error;
     }
   },
@@ -385,27 +369,28 @@ export const gameService = {
           return;
         }
 
-        // Convert and ensure no undefined values
         let currentBoard = convertBoardToArray(room.board);
-
-        // Make the move
         currentBoard[row][col] = `PLAYER ${playerNumber}`;
 
-        // Create storage object, only storing non-null values
         const boardForStorage: Record<string, Record<string, string>> = {};
-
         currentBoard.forEach((rowArray, rowIndex) => {
           const nonNullCells: Record<string, string> = {};
-
           rowArray.forEach((cell, colIndex) => {
             if (cell !== null && cell !== undefined) {
               nonNullCells[colIndex.toString()] = cell;
             }
           });
-
           if (Object.keys(nonNullCells).length > 0) {
             boardForStorage[rowIndex.toString()] = nonNullCells;
           }
+        });
+
+        debugLog("MOVES", "Making move", {
+          roomId,
+          row,
+          col,
+          playerNumber,
+          newBoard: boardForStorage,
         });
 
         return {
@@ -421,7 +406,7 @@ export const gameService = {
         };
       });
     } catch (error) {
-      console.error("🔴 [MOVE] Error making move:", error);
+      debugError("MOVES", "Error making move", error);
       throw error;
     }
   },

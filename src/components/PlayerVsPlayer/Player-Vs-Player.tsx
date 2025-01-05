@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useWindowSize } from "react-use";
 import { auth, gameService } from "../../firebase";
 import type { GamePlayer, GameRoom } from "../../types/User.types";
+import { debugError, debugLog } from "../../utils/debug";
 import { GameBoard } from "../Shared/GameBoard";
 import { Nav } from "../Shared/Nav";
 import { PreGameModal } from "./PreGameModal";
@@ -153,7 +154,7 @@ export const PlayerVsPlayer = ({
     const roomIdFromUrl = pathSegments[pathSegments.length - 1];
 
     if (roomIdFromUrl && roomIdFromUrl !== "lobby" && isMounted.current) {
-      console.log("Setting room ID from URL:", roomIdFromUrl);
+      debugLog("ROOMS", "Setting room ID from URL", roomIdFromUrl);
       setRoomId(roomIdFromUrl);
     }
   }, [setRoomId]);
@@ -163,6 +164,7 @@ export const PlayerVsPlayer = ({
 
     const user = auth.currentUser;
     if (!user) {
+      debugLog("AUTH", "No authenticated user, redirecting to online lobby");
       navigate("/pvp/online");
       return;
     }
@@ -177,6 +179,7 @@ export const PlayerVsPlayer = ({
     };
 
     if (isMounted.current) {
+      debugLog("GAME", "Setting current player", player);
       setCurrentPlayer(player);
     }
 
@@ -189,7 +192,7 @@ export const PlayerVsPlayer = ({
 
       return () => unsubscribe();
     }
-  }, [online, roomId, navigate]);
+  }, [online, roomId, navigate, gameRoom?.players.length]);
 
   useEffect(() => {
     if (!online || !gameRoom?.board) return;
@@ -242,42 +245,51 @@ export const PlayerVsPlayer = ({
   useEffect(() => {
     if (!online || !roomId) return;
 
-    console.log("🔍 [DEBUG] Setting up room listener:", { roomId });
+    debugLog("GAME", "Setting up room listener", {
+      roomId,
+      currentPlayer,
+    });
 
-    const unsubscribe = gameService.onRoomUpdate(roomId, (room) => {
-      console.log("🔍 [DEBUG] Room update received:", {
-        roomId,
-        players: room.players,
-        currentPlayer: currentPlayer,
-      });
+    const unsubscribe = gameService.onRoomUpdate(roomId, (updatedRoom) => {
+      if (!isMounted.current) return;
 
-      // Don't update if this would remove players
-      if (
-        gameRoom &&
-        gameRoom.players &&
-        room.players &&
-        gameRoom.players.length > room.players.length
-      ) {
-        console.log("🚫 [DEBUG] Preventing update that would remove players");
-        return;
+      debugLog("GAME", "Room update received", updatedRoom);
+
+      // Update game state from room data
+      if (updatedRoom.board) {
+        setGameBoard(ensureValidBoard(updatedRoom.board));
       }
 
-      setGameRoom(room);
+      setGameRoom(updatedRoom);
+      setPlayerTurn(`PLAYER ${updatedRoom.currentTurn}`);
+      setTime(updatedRoom.time || 30);
+
+      if (updatedRoom.winner) {
+        setWinner(updatedRoom.winner);
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000);
+      }
+
+      // Handle player disconnection
+      if (updatedRoom.players.length < 2) {
+        debugLog("GAME", "Player disconnected, resetting game state");
+        setOnlineOpponentReady(false);
+      }
     });
 
     return () => {
-      console.log("🔍 [DEBUG] Cleaning up room listener:", { roomId });
+      debugLog("GAME", "Cleaning up room listener");
       unsubscribe();
     };
-  }, [online, roomId]);
+  }, [roomId, currentPlayer, online]);
 
   useEffect(() => {
     if (!online || !roomId || roomId === "lobby") return;
 
-    console.log("Setting up room update listener for roomId:", roomId);
+    debugLog("GAME", "Setting up room update listener", { roomId });
 
     const unsubscribe = gameService.onRoomUpdate(roomId, async (room) => {
-      console.log("Room update received:", {
+      debugLog("GAME", "Room update received", {
         roomId,
         room,
         currentPlayer,
@@ -294,18 +306,16 @@ export const PlayerVsPlayer = ({
         const playerIndex = room.players.findIndex(
           (p) => p.uid === currentPlayer.uid,
         );
-        console.log(
-          "Player index found:",
+        debugLog("GAME", "Player index found", {
           playerIndex,
-          "for UID:",
-          currentPlayer.uid,
-        );
+          currentPlayerUid: currentPlayer.uid,
+        });
 
         if (playerIndex !== -1) {
           const isPlayerHost = playerIndex === 0;
           setPlayerNumber((playerIndex + 1) as 1 | 2);
           setIsHost(isPlayerHost);
-          console.log("Player role set:", {
+          debugLog("GAME", "Player role set", {
             playerNumber: playerIndex + 1,
             isHost: isPlayerHost,
             playerUid: currentPlayer.uid,
@@ -323,7 +333,7 @@ export const PlayerVsPlayer = ({
               .map(() => Array(7).fill(null));
 
         setGameBoard(normalizedBoard);
-        console.log("Updated game board:", normalizedBoard);
+        debugLog("GAME", "Updated game board", normalizedBoard);
       }
 
       // Update player turn based on currentTurn
@@ -334,20 +344,20 @@ export const PlayerVsPlayer = ({
 
       // Show PreGameModal when game is in waiting state
       if (room.status === "waiting") {
-        console.log("Room is in waiting state, should show modal");
+        debugLog("GAME", "Room is in waiting state, should show modal");
         setShowPreGameModal(true);
       }
 
       // Hide PreGameModal when game starts
       if (room.status === "playing") {
-        console.log("Room is in playing state, hiding modal");
+        debugLog("GAME", "Room is in playing state, hiding modal");
         setShowPreGameModal(false);
         setOnlineOpponentReady(true);
       }
     });
 
     return () => {
-      console.log("Cleaning up room update listener");
+      debugLog("GAME", "Cleaning up room update listener");
       unsubscribe();
     };
   }, [online, roomId, currentPlayer, playerNumber]);
@@ -400,9 +410,11 @@ export const PlayerVsPlayer = ({
   useEffect(() => {
     return () => {
       if (online && roomId && currentPlayer) {
-        console.log(
+        debugLog(
+          "GAME",
           `Player ${currentPlayer.displayName} leaving room ${roomId}`,
         );
+
         gameService
           .leaveRoom(roomId, currentPlayer.uid)
           .catch((error) => console.error("Error leaving room:", error));
@@ -479,102 +491,54 @@ export const PlayerVsPlayer = ({
   };
 
   const handleMove = async (row: number, col: number) => {
+    if (!online || !roomId || !playerNumber) return;
+
     try {
-      // For online mode
-      if (online) {
-        if (!roomId || !playerNumber) {
-          console.log("🚫 Cannot make move:", { roomId, online, playerNumber });
-          return;
-        }
-
-        if (!canMove) {
-          console.log("🎮 Not your turn!");
-          return;
-        }
-
-        await gameService.makeMove(roomId, row, col, playerNumber as 1 | 2);
-        return;
-      }
-
-      // Offline mode - handle move locally
-      if (!canMove) {
-        console.log("🎮 Not your turn!");
-        return;
-      }
-
-      const newBoard = gameBoard.map((r) => [...r]);
-      newBoard[row][col] = `PLAYER ${playerNumber}`;
-      setGameBoard(newBoard);
-
-      // Update turn
-      const nextPlayerNumber = playerNumber === 1 ? 2 : 1;
-      const nextPlayerTurn = `PLAYER ${nextPlayerNumber}`;
-      setPlayerTurn(nextPlayerTurn);
-      setPlayerNumber(nextPlayerNumber);
-
-      // Check for win
-      const winPositions = checkWin(
-        newBoard,
-        row,
-        col,
-        `PLAYER ${playerNumber}`,
-      );
-      if (winPositions) {
-        setWinner(`PLAYER ${playerNumber}`);
-        setLastGameWinner(`PLAYER ${playerNumber}`);
-        setWinningPositions(winPositions);
-        if (playerNumber === 1) {
-          setPlayer1Score((prev) => prev + 1);
-        } else {
-          setPlayer2Score((prev) => prev + 1);
-        }
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 5000);
-      }
+      debugLog("MOVES", "Making move", { row, col, playerNumber });
+      await gameService.makeMove(roomId, row, col, playerNumber);
     } catch (error) {
-      console.error("🎮 Error making move:", error);
+      debugError("MOVES", "Error making move", error);
     }
   };
 
   const playAgain = async () => {
-    // Reset winning positions (local state only)
+    if (!online) {
+      playAgain();
+      return;
+    }
+
+    if (!online || !roomId) return;
+
     setWinningPositions([]);
 
     const newBoard = Array(6)
       .fill(null)
       .map(() => Array(7).fill(null));
 
-    const nextPlayerTurn = lastGameWinner || "PLAYER 1";
-    const nextPlayerNumber = nextPlayerTurn === "PLAYER 1" ? 1 : 2;
-
-    const newState = {
-      board: newBoard,
-      time: 30,
-      winner: "",
-      playerTurn: nextPlayerTurn,
-      player1Score,
-      player2Score,
+    debugLog("GAME", "Starting new game", {
       lastGameWinner,
-    };
+      newBoard,
+    });
 
-    setGameBoard(newState.board);
-    setTime(newState.time);
-    setWinner(newState.winner);
-    setPlayerTurn(newState.playerTurn);
-
-    // Reset player number and can move state for offline mode
-    if (!online) {
-      setPlayerNumber(nextPlayerNumber);
-      setCanMove(true); // Allow the starting player to move
-    }
-
-    if (online && roomId) {
-      await gameService.updateGameState(roomId, newState);
-    }
+    await gameService.updateGameState(roomId, {
+      board: newBoard,
+      currentTurn: lastGameWinner === "PLAYER 1" ? 1 : 2,
+      winner: null,
+      status: "playing",
+      time: 30,
+      lastMove: {
+        row: -1,
+        col: -1,
+        player: lastGameWinner === "PLAYER 1" ? 1 : 2,
+        timestamp: Date.now(),
+      },
+    });
+    setWinner("");
   };
 
   const restartGame = async () => {
-    setWinningPositions([]); // Reset winning positions
+    debugLog("GAME", "Restarting game");
+    setWinningPositions([]);
     const newBoard = Array(6)
       .fill(null)
       .map(() => Array(7).fill(null));
@@ -588,16 +552,21 @@ export const PlayerVsPlayer = ({
       lastGameWinner: null,
     };
 
-    setGameBoard(newState.board);
-    setPlayerTurn(newState.playerTurn);
-    setTime(newState.time);
-    setWinner(newState.winner);
-    setPlayer1Score(newState.player1Score);
-    setPlayer2Score(newState.player2Score);
-    setLastGameWinner(newState.lastGameWinner);
+    try {
+      setGameBoard(newState.board);
+      setPlayerTurn(newState.playerTurn);
+      setTime(newState.time);
+      setWinner(newState.winner);
+      setPlayer1Score(newState.player1Score);
+      setPlayer2Score(newState.player2Score);
+      setLastGameWinner(newState.lastGameWinner);
 
-    if (online && roomId) {
-      await gameService.updateGameState(roomId, newState);
+      if (online && roomId) {
+        await gameService.updateGameState(roomId, newState);
+      }
+      debugLog("GAME", "Game successfully restarted");
+    } catch (error) {
+      debugError("GAME", "Error restarting game", error);
     }
   };
 
@@ -628,7 +597,7 @@ export const PlayerVsPlayer = ({
   };
 
   useEffect(() => {
-    console.log("Menu open state:", open);
+    debugLog("GAME", "Menu state changed", { open });
   }, [open]);
 
   const handlePlayAgain = async () => {
@@ -639,32 +608,39 @@ export const PlayerVsPlayer = ({
 
     if (!online || !roomId) return;
 
-    // Reset winning positions first (local state only)
+    debugLog("GAME", "Starting new game", {
+      roomId,
+      lastGameWinner,
+    });
+
     setWinningPositions([]);
 
     const newBoard = Array(6)
       .fill(null)
       .map(() => Array(7).fill(null));
 
-    await gameService.updateGameState(roomId, {
-      board: newBoard,
-      currentTurn: lastGameWinner === "PLAYER 1" ? 1 : 2,
-      winner: null,
-      status: "playing",
-      time: 30,
-      lastMove: {
-        row: -1,
-        col: -1,
-        player: lastGameWinner === "PLAYER 1" ? 1 : 2,
-        timestamp: Date.now(),
-      },
-      // Remove winningPositions from Firebase update
-    });
-    setWinner("");
+    try {
+      await gameService.updateGameState(roomId, {
+        board: newBoard,
+        currentTurn: lastGameWinner === "PLAYER 1" ? 1 : 2,
+        winner: null,
+        status: "playing",
+        time: 30,
+        lastMove: {
+          row: -1,
+          col: -1,
+          player: lastGameWinner === "PLAYER 1" ? 1 : 2,
+          timestamp: Date.now(),
+        },
+      });
+      setWinner("");
+    } catch (error) {
+      debugError("GAME", "Error restarting game", error);
+    }
   };
 
   useEffect(() => {
-    console.log("Modal render conditions:", {
+    debugLog("GAME", "Modal render conditions", {
       online,
       roomId,
       gameRoom,
@@ -678,14 +654,14 @@ export const PlayerVsPlayer = ({
     // Cleanup function
     return () => {
       if (roomId && currentPlayer) {
-        console.log("🎮 Cleaning up player connection:", {
+        debugLog("GAME", "Cleaning up player connection", {
           roomId,
           player: currentPlayer,
         });
 
         // Remove the player from the room when they disconnect
         gameService.leaveRoom(roomId, currentPlayer.uid).catch((error) => {
-          console.error("Error cleaning up room:", error);
+          debugError("GAME", "Error cleaning up room", error);
         });
       }
     };
@@ -761,7 +737,7 @@ export const PlayerVsPlayer = ({
             playerNumber={playerNumber}
             onGameStart={() => {
               if (isHost) {
-                console.log("Host starting game...");
+                debugLog("GAME", "Host starting game...");
                 gameService.updateGameState(roomId, {
                   ...gameRoom,
                   status: "playing",

@@ -8,6 +8,7 @@ import marker_red from "../../assets/images/marker-red.svg";
 import marker_yellow from "../../assets/images/marker-yellow.svg";
 import { gameService } from "../../firebase";
 import type { GameMove, GameRoom } from "../../types/Game.types";
+import { debugError, debugLog } from "../../utils/debug";
 import { evaluate } from "../PlayerVsCPU/Evaluate";
 import { getNewStates, isValidMove, makeMove } from "../PlayerVsCPU/Moves";
 import { Player } from "./Player";
@@ -235,7 +236,7 @@ export const GameBoard = ({
   // Handle incoming moves from Firebase
   useEffect(() => {
     if (!online || !gameRoom?.lastMove) {
-      console.log("🎮 [BOARD] Skipping move update:", {
+      debugLog("GAME", "Skipping move update", {
         online,
         hasLastMove: !!gameRoom?.lastMove,
       });
@@ -245,26 +246,26 @@ export const GameBoard = ({
     const { row, col, player } = gameRoom.lastMove;
     const moveKey = `${row}-${col}-${player}`;
 
-    console.log("🎮 [BOARD] Processing move:", {
+    debugLog("GAME", "Processing move", {
       moveKey,
       lastProcessed: lastProcessedMove.current,
       currentBoard: localBoard,
     });
 
     if (lastProcessedMove.current === moveKey) {
-      console.log("🎮 [BOARD] Move already processed, skipping");
+      debugLog("GAME", "Move already processed, skipping");
       return;
     }
 
     if (row === -1 || col === -1) {
-      console.log("🎮 [BOARD] Invalid move coordinates, skipping");
+      debugLog("GAME", "Invalid move coordinates, skipping");
       return;
     }
 
     setLocalBoard((prevBoard) => {
       const newBoard = prevBoard.map((row) => [...row]);
       newBoard[row][col] = `PLAYER ${player}`;
-      console.log("🎮 [BOARD] Updated local board:", newBoard);
+      debugLog("GAME", "Updated local board", newBoard);
       return newBoard;
     });
 
@@ -280,7 +281,7 @@ export const GameBoard = ({
   // Modify the dropCounter function
   const dropCounter = async (columnIndex: number) => {
     if (online && !canMove) {
-      console.log("🚫 Cannot move: not your turn");
+      debugLog("GAME", "Cannot move: not your turn");
       return;
     }
 
@@ -652,37 +653,37 @@ export const GameBoard = ({
     if (!gameRoom?.board) return;
 
     setLocalBoard(gameRoom.board);
-    console.log("🎮 Updated game board from room state:", gameRoom.board);
+    debugLog("GAME", "Updated game board from room state", gameRoom.board);
   }, [gameRoom?.board, setLocalBoard]);
 
   // Add effect to sync board state from Firebase
   useEffect(() => {
     if (!online || !gameRoom?.board) {
-      console.log("🎮 [SYNC] Skipping sync:", {
+      debugLog("GAME", "Skipping sync", {
         online,
         hasBoard: !!gameRoom?.board,
       });
       return;
     }
 
-    console.log("🎮 [SYNC] Syncing board from Firebase:", {
+    debugLog("GAME", "Syncing board from Firebase", {
       board: gameRoom.board,
       lastMove: gameRoom.lastMove,
       currentTurn: gameRoom.currentTurn,
     });
 
     const validBoard = ensureValidBoard(gameRoom.board);
-    console.log("🎮 [SYNC] Validated board:", validBoard);
+    debugLog("GAME", "Validated board", validBoard);
 
     setLocalBoard(validBoard);
     setGameBoard(validBoard);
 
     if (gameRoom.lastMove) {
       const { row, col, player } = gameRoom.lastMove;
-      console.log("🎮 [SYNC] Checking win condition:", { row, col, player });
+      debugLog("GAME", "Checking win condition", { row, col, player });
 
       if (checkWin(validBoard, row, col)) {
-        console.log("🎮 [SYNC] Win detected for Player", player);
+        debugLog("GAME", "Win detected for Player", player);
         setWinner(`PLAYER ${player}`);
         updateScores(`PLAYER ${player}`);
       }
@@ -714,7 +715,7 @@ export const GameBoard = ({
         setWinner("NOBODY");
       }
     } catch (error) {
-      console.error("Error making move:", error);
+      debugError("GAME", "Error making move", error);
       // Revert local board on error
       setLocalBoard(gameBoard);
     }

@@ -5,6 +5,7 @@ import back from "../../assets/images/back.svg";
 import { gameService } from "../../firebase";
 import { useAuth } from "../../hooks/useAuth";
 import type { GamePlayer, GameRoom } from "../../types/User.types";
+import { debugError, debugLog } from "../../utils/debug";
 import { AnimatedMenu, GameLinkButton } from "../Home/MainMenu";
 
 const ROOMS_PER_PAGE = 5;
@@ -71,10 +72,10 @@ export const JoinRoom = () => {
 
   const fetchRooms = () => {
     setRefreshing(true);
-    console.log("🔄 Refreshing rooms list...");
+    debugLog("ROOMS", "Refreshing rooms list...");
 
     const unsubscribe = gameService.onRoomsUpdate((updatedRooms) => {
-      console.log("📥 Received rooms:", updatedRooms);
+      debugLog("ROOMS", "Received rooms", updatedRooms);
       const currentTime = Date.now();
 
       setRooms(
@@ -93,11 +94,11 @@ export const JoinRoom = () => {
   };
 
   useEffect(() => {
-    console.log("🟣 JoinRoom component mounted");
+    debugLog("ROOMS", "JoinRoom component mounted");
     const unsubscribe = fetchRooms();
 
     return () => {
-      console.log("🟣 JoinRoom component unmounting");
+      debugLog("ROOMS", "JoinRoom component unmounting");
       unsubscribe();
     };
   }, []);
@@ -116,7 +117,7 @@ export const JoinRoom = () => {
     try {
       setError(null);
       setJoiningRoom(roomId);
-      console.log("🎮 [JOIN] Attempting to join room:", roomId);
+      debugLog("ROOMS", "Attempting to join room", roomId);
 
       const player: GamePlayer = {
         uid: user.uid,
@@ -128,16 +129,15 @@ export const JoinRoom = () => {
         ready: false,
       };
 
-      console.log("🎮 [JOIN] Player data to be sent:", player);
+      debugLog("ROOMS", "Player data to be sent", player);
 
       await gameService.joinRoom(roomId, player);
-      console.log("🎮 [JOIN] Successfully joined room");
+      debugLog("ROOMS", "Successfully joined room");
 
       navigate(`/pvp/online/room/${roomId}`);
     } catch (error) {
-      console.error("🔴 [JOIN] Error joining room:", error);
+      debugError("ROOMS", "Error joining room", error);
       setError(error instanceof Error ? error.message : "Failed to join room");
-    } finally {
       setJoiningRoom(null);
     }
   };

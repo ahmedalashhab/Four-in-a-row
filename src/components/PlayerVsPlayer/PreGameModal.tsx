@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { gameService } from "../../firebase";
 import type { GamePlayer, GameRoom } from "../../types/User.types";
+import { debugError, debugLog } from "../../utils/debug";
 
 interface PreGameModalProps {
   room: GameRoom;
@@ -25,18 +26,16 @@ export const PreGameModal = ({
   // Add leave room handler
   const handleLeaveRoom = async () => {
     try {
-      // Leave the room
       await gameService.leaveRoom(room.id, room.players[playerNumber - 1].uid);
-      // Navigate back to the lobby
       navigate("/pvp/online");
     } catch (error) {
-      console.error("Error leaving room:", error);
+      debugError("ROOMS", "Error leaving room", error);
     }
   };
 
   // Add effect to track guest player updates
   useEffect(() => {
-    console.log("🎮 PreGameModal - Room data received:", {
+    debugLog("GAME", "PreGameModal - Room data received", {
       roomId: room.id,
       players: room.players,
       totalPlayers: room.players.length,
@@ -44,22 +43,23 @@ export const PreGameModal = ({
 
     if (room.players && room.players.length > 1) {
       const guest = room.players.find((p) => p.playerNumber === 2);
-      console.log("🎮 PreGameModal - Looking for guest player:", {
+      debugLog("GAME", "PreGameModal - Looking for guest player", {
         allPlayers: room.players,
         foundGuest: guest,
         guestNumber: guest?.playerNumber,
       });
 
       if (guest) {
-        console.log("🎮 PreGameModal - Setting guest player:", guest);
+        debugLog("GAME", "PreGameModal - Setting guest player", guest);
         setGuestPlayer(guest);
       } else {
-        console.log("🎮 PreGameModal - No guest player found in room data");
+        debugLog("GAME", "PreGameModal - No guest player found in room data");
         setGuestPlayer(null);
       }
     } else {
-      console.log(
-        "🎮 PreGameModal - Not enough players:",
+      debugLog(
+        "GAME",
+        "PreGameModal - Not enough players",
         room.players?.length,
       );
       setGuestPlayer(null);
@@ -110,32 +110,24 @@ export const PreGameModal = ({
     const newReadyState = !isReady;
 
     try {
-      console.log("🎮 [READY] Current state:", {
+      debugLog("GAME", "Ready state update", {
         isReady,
         room,
         playerNumber,
       });
 
-      // Create a deep copy of the players array
-      const updatedPlayers = room.players.map((p) => {
-        if (p.playerNumber === playerNumber) {
-          return {
-            ...p,
-            ready: newReadyState,
-          };
-        }
-        return p;
-      });
+      const updatedPlayers = room.players.map((p) => ({
+        ...p,
+        ready: p.playerNumber === playerNumber ? newReadyState : p.ready,
+      }));
 
-      console.log("🎮 [READY] Updating players:", {
+      debugLog("GAME", "Updating players", {
         before: room.players,
         after: updatedPlayers,
       });
 
-      // Update local state first
       setIsReady(newReadyState);
 
-      // Update the game state in Firebase
       await gameService.updateGameState(room.id, {
         players: updatedPlayers,
         lastMove: {
@@ -146,10 +138,9 @@ export const PreGameModal = ({
         },
       });
 
-      console.log("🎮 [READY] Successfully updated ready state");
+      debugLog("GAME", "Successfully updated ready state");
     } catch (error) {
-      console.error("🔴 [READY] Error updating ready state:", error);
-      // Revert local state if update fails
+      debugError("GAME", "Error updating ready state", error);
       setIsReady(!newReadyState);
     }
   };
