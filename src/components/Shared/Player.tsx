@@ -18,7 +18,7 @@ export const Player = ({
   isCurrentPlayer,
   cpuMode,
 }: PlayerProps) => {
-  const isPhone = window.innerWidth < 821;
+  const isPhone = window.innerWidth < 1024;
 
   const getPlayerText = () => {
     if (online) {

@@ -434,13 +434,13 @@ export const GameBoard = ({
                 <div
                   key={i}
                   className="lg:w-[4.6rem] lg:h-[4.6rem] select-none sm:w-[5.25rem] sm:h-[5.25rem] md:w-[5.8rem]
-                  md:h-[5.8rem] w-[3.1rem] h-[3.1rem] pl-[4px] lg:pl-0"
+                  md:h-[5.8rem] xs:w-[3.1rem] xs:h-[3.1rem] w-[2.65rem] h-[2.7rem] xs:pl-[4px] pl-[2px] lg:pl-0"
                 >
                   {row[j] === "PLAYER 1" ? (
                     <motion.img
                       src={counter_red}
                       alt="counter"
-                      className={`lg:w-[4rem] sm:w-[4.6rem] md:w-[4.8rem] w-[2.5rem] 
+                      className={`lg:w-[4rem] sm:w-[4.6rem] md:w-[4.8rem] xs:w-[2.5rem] w-[2.4rem]
                         select-none absolute h-auto z-[-1]
                         ${
                           winningPositions.some(
@@ -468,7 +468,7 @@ export const GameBoard = ({
                     <motion.img
                       src={counter_yellow}
                       alt="counter"
-                      className={`lg:w-[4rem] sm:w-[4.6rem] md:w-[4.8rem] w-[2.5rem] 
+                      className={`lg:w-[4rem] sm:w-[4.6rem] md:w-[4.8rem] xs:w-[2.5rem] w-[2.4rem]
                         select-none absolute h-auto z-[-1]
                         ${
                           winningPositions.some(
@@ -569,7 +569,7 @@ export const GameBoard = ({
     isDraw(localBoard) && setWinner("NOBODY");
   }, [counterStutter]);
 
-  const isPhone = window.innerWidth < 821;
+  const isPhone = window.innerWidth < 1024;
 
   // Function to check for win condition
   const checkWin = (
@@ -776,7 +776,7 @@ export const GameBoard = ({
           <div className="relative flex items-center justify-center">
             <img
               src={board_white}
-              className={`relative z-${counterZIndex} select-none px-4 w-[24.2rem] sm:w-[40rem] md:w-[43.5rem] md:mt-3 lg:w-[35rem] h-auto`}
+              className={`relative z-${counterZIndex} select-none px-4 xs:w-[24.2rem] sm:w-[40rem] md:w-[43.5rem] md:mt-3 lg:w-[35rem] w-[21rem] h-auto`}
               alt="white board"
             />
             {renderGameBoard()}
