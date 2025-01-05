@@ -277,7 +277,6 @@ export const GameBoard = ({
     {},
   );
 
-  // Modify the dropCounter function
   const dropCounter = async (columnIndex: number) => {
     if (online && !canMove) {
       console.log("🚫 Cannot move: not your turn");
@@ -407,7 +406,8 @@ export const GameBoard = ({
         (online &&
           canMove && // In online mode, only show when it's player's turn
           ((playerNumber === 1 && playerTurn === "PLAYER 1") ||
-            (playerNumber === 2 && playerTurn === "PLAYER 2"))));
+            (playerNumber === 2 && playerTurn === "PLAYER 2")))) &&
+      !(cpuMode && playerTurn === "PLAYER 2"); // Add this condition to hide hover during CPU turn
 
     return (
       <>
