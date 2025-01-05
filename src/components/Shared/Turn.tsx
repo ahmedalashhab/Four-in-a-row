@@ -51,18 +51,29 @@ export const Turn = ({
   };
 
   useEffect(() => {
-    if (winner || open) {
+    // In online mode, only stop timer if there's a winner
+    // In offline mode, stop timer if there's a winner or pause menu is open
+    if (winner || (!online && open)) {
       return;
     }
 
     const timer = setTimeout(() => {
-      if (!open && (online ? onlineOpponentReady : true)) {
-        setTime((prevTime: number) => prevTime - 1);
+      if ((!online && !open) || (online && onlineOpponentReady)) {
+        setTime((prevTime: number) => {
+          // If time would go below 0, keep it at 0 and handle the move
+          if (prevTime <= 1) {
+            handleTimeoutMove();
+            return 0;
+          }
+          return prevTime - 1;
+        });
       }
     }, 1000);
 
-    // When time is 0, make random move
-    if (time === 0 && !open && !winner) {
+    // Separate function to handle timeout moves
+    const handleTimeoutMove = () => {
+      if (winner || !canMove) return;
+
       if (!online) {
         // Handle CPU moves in offline mode
         let randomNum;
@@ -71,7 +82,7 @@ export const Turn = ({
         } while (!isValidMove(gameBoard, randomNum));
         setRandomNum(randomNum);
         handleClick();
-      } else if (canMove) {
+      } else {
         // Handle timeout moves in online mode
         let validColumn;
         do {
@@ -82,7 +93,7 @@ export const Turn = ({
         dropCounter(validColumn);
         setTime(30);
       }
-    }
+    };
 
     return () => {
       clearTimeout(timer);
