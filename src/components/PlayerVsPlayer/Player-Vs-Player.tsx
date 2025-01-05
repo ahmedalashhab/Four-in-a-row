@@ -543,21 +543,30 @@ export const PlayerVsPlayer = ({
     const newBoard = Array(6)
       .fill(null)
       .map(() => Array(7).fill(null));
+
+    const nextPlayerTurn = lastGameWinner || "PLAYER 1";
+    const nextPlayerNumber = nextPlayerTurn === "PLAYER 1" ? 1 : 2;
+
     const newState = {
       board: newBoard,
       time: 30,
       winner: "",
-      playerTurn: lastGameWinner || "PLAYER 1",
+      playerTurn: nextPlayerTurn,
       player1Score,
       player2Score,
       lastGameWinner,
-      // Remove winningPositions from state object
     };
 
     setGameBoard(newState.board);
     setTime(newState.time);
     setWinner(newState.winner);
     setPlayerTurn(newState.playerTurn);
+
+    // Reset player number and can move state for offline mode
+    if (!online) {
+      setPlayerNumber(nextPlayerNumber);
+      setCanMove(true); // Allow the starting player to move
+    }
 
     if (online && roomId) {
       await gameService.updateGameState(roomId, newState);
