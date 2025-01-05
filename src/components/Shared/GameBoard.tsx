@@ -280,12 +280,14 @@ export const GameBoard = ({
 
   // Modify the dropCounter function
   const dropCounter = async (columnIndex: number) => {
-    if (online && !canMove) {
-      debugLog("GAME", "Cannot move: not your turn");
-      return;
-    }
-
-    if (winner || isProcessingMove) {
+    // Only check canMove if in online mode
+    if ((online && !canMove) || winner || isProcessingMove) {
+      debugLog("GAME", "Cannot move", {
+        online,
+        canMove,
+        winner,
+        isProcessingMove,
+      });
       return;
     }
 
@@ -299,16 +301,32 @@ export const GameBoard = ({
       }
 
       if (online && roomId && playerNumber) {
-        // Ensure roomId is not null and playerNumber is properly typed
+        // Online game move
         await handleMove(roomId, rowIndex, columnIndex, playerNumber as 1 | 2);
       } else {
-        // Offline game logic
+        // Offline game move
+        const newBoard = gameBoard.map((row) => [...row]);
+        newBoard[rowIndex][columnIndex] = playerTurn;
+        setGameBoard(newBoard);
+
+        // Check for win after move - removed playerTurn argument
+        if (checkWin(newBoard, rowIndex, columnIndex)) {
+          setWinner(playerTurn);
+          updateScores(playerTurn);
+        } else if (isDraw(newBoard)) {
+          setWinner("NOBODY");
+        }
+
+        // Update turn
+        setPlayerTurn(playerTurn === "PLAYER 1" ? "PLAYER 2" : "PLAYER 1");
+        setTime(30);
+
         if (onMove) {
           onMove(rowIndex, columnIndex);
         }
       }
     } catch (error) {
-      console.error("Error making move:", error);
+      debugError("GAME", "Error making move", error);
     } finally {
       setIsProcessingMove(false);
     }
