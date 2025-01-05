@@ -756,22 +756,56 @@ export const GameBoard = ({
     >
       {/* Mobile view */}
       {isPhone && (
-        <div className="flex justify-between mb-[1.5rem] lg:mb-0 w-screen lg:w-auto px-5">
-          <Player
-            pNumber={1}
-            score={player1Score}
-            online={online}
-            isCurrentPlayer={playerNumber === 1}
-            cpuMode={cpuMode}
-          />
-          <Player
-            pNumber={2}
-            score={player2Score}
-            online={online}
-            isCurrentPlayer={playerNumber === 2}
-            cpuMode={cpuMode}
-          />
-        </div>
+        <>
+          <div className="flex justify-between mb-[1.5rem] w-screen px-5">
+            <Player
+              pNumber={1}
+              score={player1Score}
+              online={online}
+              isCurrentPlayer={playerNumber === 1}
+              cpuMode={cpuMode}
+            />
+            <Player
+              pNumber={2}
+              score={player2Score}
+              online={online}
+              isCurrentPlayer={playerNumber === 2}
+              cpuMode={cpuMode}
+            />
+          </div>
+          <div className="relative flex items-center justify-center">
+            <img
+              src={board_white}
+              className={`relative z-${counterZIndex} select-none px-4 w-[24.2rem] sm:w-[40rem] md:w-[43.5rem] md:mt-3 lg:w-[35rem] h-auto`}
+              alt="white board"
+            />
+            {renderGameBoard()}
+            <img
+              src={board_black}
+              className="absolute translate-y-1 z-[-1] top-50 left-50 select-none px-4 w-[24.2rem] sm:w-[40rem] md:w-[43.5rem] md:mt-3 lg:w-[35rem] h-auto"
+              alt="board shadow"
+            />
+            <Turn
+              online={online}
+              onlineOpponentReady={onlineOpponentReady}
+              time={time}
+              setTime={setTime}
+              playerTurn={playerTurn}
+              setPlayerTurn={setPlayerTurn}
+              player1Score={player1Score}
+              player2Score={player2Score}
+              winner={winner}
+              resetGame={resetGame}
+              open={open}
+              setOpen={setOpen}
+              dropCounter={dropCounter}
+              gameBoard={gameBoard}
+              canMove={canMove}
+              playerNumber={playerNumber}
+              cpuMode={cpuMode}
+            />
+          </div>
+        </>
       )}
 
       {/* Desktop view */}
