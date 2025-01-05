@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import logo from "../../assets/images/logo.svg";
 import Pause from "./Pause";
 
@@ -17,9 +17,20 @@ export const Nav = ({
   online,
   setRoomId,
 }: NavProps) => {
+  const [isClosing, setIsClosing] = useState(false);
+
   const handleMenuClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setOpen(true);
+  };
+
+  const handleClose = () => {
+    setIsClosing(true);
+    // Wait for animation to complete before fully closing
+    setTimeout(() => {
+      setIsClosing(false);
+      setOpen(false);
+    }, 150); // Match this with CSS animation duration
   };
 
   return (
@@ -31,14 +42,20 @@ export const Nav = ({
         MENU
       </button>
       <img src={logo} alt="logo" className="w-[2.5rem] lg:w-[3.25rem]" />
-      {open && (
-        <Pause
-          open={open}
-          setOpen={setOpen}
-          restartGame={restartGame}
-          online={online}
-          setRoomId={setRoomId}
-        />
+      {(open || isClosing) && (
+        <div
+          className={`fixed inset-0 z-[100] ${
+            isClosing ? "animate-fade-out" : "animate-fade-in"
+          }`}
+        >
+          <Pause
+            open={open}
+            setOpen={handleClose}
+            restartGame={restartGame}
+            online={online}
+            setRoomId={setRoomId}
+          />
+        </div>
       )}
     </div>
   );
