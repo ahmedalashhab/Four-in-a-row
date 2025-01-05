@@ -64,20 +64,30 @@ export const Turn = ({
     // When time is 0, make random move
     if (time === 0 && !open && !winner) {
       if (!online) {
-        // Only handle CPU moves in offline mode
+        // Handle CPU moves in offline mode
         let randomNum;
         do {
           randomNum = Math.floor(Math.random() * 7);
         } while (!isValidMove(gameBoard, randomNum));
         setRandomNum(randomNum);
         handleClick();
+      } else if (canMove) {
+        // Handle timeout moves in online mode
+        let validColumn;
+        do {
+          validColumn = Math.floor(Math.random() * 7);
+        } while (!isValidMove(gameBoard, validColumn));
+
+        // Make the move
+        dropCounter(validColumn);
+        setTime(30);
       }
     }
 
     return () => {
       clearTimeout(timer);
     };
-  }, [time, open, winner, online, onlineOpponentReady]);
+  }, [time, open, winner, online, onlineOpponentReady, canMove, gameBoard]);
 
   useEffect(() => {
     if (!online) {

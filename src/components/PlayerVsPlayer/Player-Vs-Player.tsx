@@ -201,6 +201,11 @@ export const PlayerVsPlayer = ({
     const currentTurn = `PLAYER ${gameRoom.currentTurn}`;
     setPlayerTurn(currentTurn);
 
+    // Reset winning positions when a new move is made after game restart
+    if (gameRoom.lastMove && gameRoom.lastMove.row !== -1) {
+      setWinningPositions([]);
+    }
+
     // Check for win if there's a last move
     if (gameRoom.lastMove) {
       const { row, col, player } = gameRoom.lastMove;
@@ -532,7 +537,9 @@ export const PlayerVsPlayer = ({
   };
 
   const playAgain = async () => {
-    setWinningPositions([]); // Reset winning positions
+    // Reset winning positions (local state only)
+    setWinningPositions([]);
+
     const newBoard = Array(6)
       .fill(null)
       .map(() => Array(7).fill(null));
@@ -544,6 +551,7 @@ export const PlayerVsPlayer = ({
       player1Score,
       player2Score,
       lastGameWinner,
+      // Remove winningPositions from state object
     };
 
     setGameBoard(newState.board);
@@ -622,9 +630,13 @@ export const PlayerVsPlayer = ({
 
     if (!online || !roomId) return;
 
+    // Reset winning positions first (local state only)
+    setWinningPositions([]);
+
     const newBoard = Array(6)
       .fill(null)
       .map(() => Array(7).fill(null));
+
     await gameService.updateGameState(roomId, {
       board: newBoard,
       currentTurn: lastGameWinner === "PLAYER 1" ? 1 : 2,
@@ -637,6 +649,7 @@ export const PlayerVsPlayer = ({
         player: lastGameWinner === "PLAYER 1" ? 1 : 2,
         timestamp: Date.now(),
       },
+      // Remove winningPositions from Firebase update
     });
     setWinner("");
   };
