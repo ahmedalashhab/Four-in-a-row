@@ -57,6 +57,11 @@ export const Turn = ({
       return;
     }
 
+    // In online mode, only the current player should update the timer
+    if (online && !canMove) {
+      return;
+    }
+
     const timer = setTimeout(() => {
       if ((!online && !open) || (online && onlineOpponentReady)) {
         setTime((prevTime: number) => {
